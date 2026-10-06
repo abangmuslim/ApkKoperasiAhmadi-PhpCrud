@@ -1,79 +1,108 @@
 <?php
-// proses/proseslogin.php - Login pakai JSON (Pertemuan 19)
-session_start();
 
-function baca($f){ 
-    return file_exists($f) ? (json_decode(file_get_contents($f), true) ?? []) : []; 
+require_once 'session.php';
+require_once 'koneksi.php';
+require_once 'helper.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect('../index.php?halaman=loginpelanggan');
 }
 
-$fileuser = "../data/datauser.json";
+$username = trim($_POST['username'] ?? '');
+$password = $_POST['password'] ?? '';
 
-// --- LOGOUT ---
-if(isset($_GET['aksi']) && $_GET['aksi']=='logout'){
-    session_unset();
-    session_destroy();
-    header("Location: ../index.php?halaman=home");
-    exit;
+if ($username == '' || $password == '') {
+
+    $_SESSION['error_login'] =
+        'Username dan password wajib diisi';
+
+    redirect('../index.php?halaman=loginpelanggan');
 }
 
-// --- PROSES LOGIN ---
-if(isset($_POST['login'])){
+$stmt = mysqli_prepare(
+    $koneksi,
+    "SELECT *
+     FROM pelanggan
+     WHERE username=?
+     LIMIT 1"
+);
 
-    // 1. VALIDASI isset() & empty() - Materi Pertemuan 11 & 13
-    if(!isset($_POST['username']) || !isset($_POST['password'])){
-        header("Location: ../index.php?halaman=loginuser&error=Field belum diset (isset)");
-        exit;
-    }
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
+mysqli_stmt_bind_param(
+    $stmt,
+    "s",
+    $username
+);
 
-    if(empty($username) || empty($password)){
-        header("Location: ../index.php?halaman=loginuser&error=Username dan Password wajib diisi (empty)");
-        exit;
-    }
+mysqli_stmt_execute($stmt);
 
-    // 2. BACA JSON - Materi Function
-    if(!file_exists($fileuser)){
-        // buat default user jika file belum ada
-        $default = [
-            ['id'=>1,'username'=>'user','password'=>'user123','nama'=>'useristrator','role'=>'user']
-        ];
-        file_put_contents($fileuser, json_encode($default, JSON_PRETTY_PRINT));
-    }
+$result = mysqli_stmt_get_result($stmt);
 
-    $datauser = baca($fileuser);
-    $loginBerhasil = false;
-    $userData = null;
+$pelanggan = mysqli_fetch_assoc($result);
 
-    // 3. PERULANGAN & PERCABANGAN untuk cek login
-    foreach($datauser as $user){
-        // Cocokkan username & password (plain text untuk pembelajaran Fundamental)
-        if($user['username'] === $username && $user['password'] === $password){
-            $loginBerhasil = true;
-            $userData = $user;
-            break;
-        }
-    }
+if (!$pelanggan) {
 
-    // 4. SET SESSION & REDIRECT KE DASHBOARD
-    if($loginBerhasil){
-        $_SESSION['login'] = true;
-        $_SESSION['user_id'] = $userData['id'];
-        $_SESSION['username'] = $userData['username'];
-        $_SESSION['nama'] = $userData['nama'] ?? $userData['username'];
-        $_SESSION['role'] = $userData['role'] ?? 'user';
+    $_SESSION['error_login'] =
+        'Username atau password salah';
 
-        // Masuk ke dashboard setelah login - sesuai ketentuan
-        header("Location: ../index.php?halaman=dashboard");
-        exit;
-    } else {
-        header("Location: ../index.php?halaman=loginuser&error=Username atau Password salah! Cek data/datauser.json");
-        exit;
-    }
-
-} else {
-    // jika akses langsung tanpa POST
-    header("Location: ../index.php?halaman=loginuser");
-    exit;
+    redirect('../index.php?halaman=loginpelanggan');
 }
-?>
+
+
+/*
+|--------------------------------------------------------------------------
+| PASSWORD
+|--------------------------------------------------------------------------
+| Mendukung password lama (plain text)
+| dan password baru (hash)
+|--------------------------------------------------------------------------
+*/
+
+$loginBerhasil = false;
+
+if (
+    password_verify(
+        $password,
+        $pelanggan['password']
+    )
+) {
+
+    $loginBerhasil = true;
+
+} elseif (
+    $password === $pelanggan['password']
+) {
+
+    $loginBerhasil = true;
+}
+
+if (!$loginBerhasil) {
+
+    $_SESSION['error_login'] =
+        'Username atau password salah';
+
+    redirect('../index.php?halaman=loginpelanggan');
+}
+
+session_regenerate_id(true);
+
+$_SESSION['idpelanggan']   =
+    $pelanggan['idpelanggan'];
+
+$_SESSION['namapelanggan'] =
+    $pelanggan['namapelanggan'];
+
+$_SESSION['username'] =
+    $pelanggan['username'];
+
+$_SESSION['foto'] =
+    $pelanggan['foto'];
+
+$_SESSION['login'] = true;
+
+unset($_SESSION['error_login']);
+
+mysqli_stmt_close($stmt);
+
+redirect(
+    '../index.php?halaman=dashboardpelanggan'
+);
