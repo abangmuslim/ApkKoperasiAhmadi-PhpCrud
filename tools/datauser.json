@@ -1,0 +1,22 @@
+[
+    {
+        "id": 2,
+        "username": "ahmadi",
+        "password": "ahmadi",
+        "nama": "Ahmadi Muslim",
+        "role": "admin",
+        "email": "ahmadimuslim55@guru.smk.belajar.id",
+        "foto": "user_2_1789576638.png",
+        "tanggal_buat": "2026-09-16 16:17:02"
+    },
+    {
+        "id": 3,
+        "username": "admin",
+        "password": "admin",
+        "nama": "administrator",
+        "role": "admin",
+        "email": "ahmadimuslim55@guru.smk.belajar.id",
+        "foto": "user_3_1789576099.jpg",
+        "tanggal_buat": "2026-09-16 16:28:19"
+    }
+]

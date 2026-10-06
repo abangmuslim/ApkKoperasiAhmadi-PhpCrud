@@ -1,0 +1,1625 @@
+cvdigitalahmadimuslim/
+│
+├── index.php                 # halaman homepage selamat datang (pakai navbar yang ada menu loginuser dan registrasipeserta)
+│<?php
+session_start();
+$halaman = $_GET['halaman'] ?? 'home';
+$allowed = [
+  'home','loginuser','registerpeserta','contact','daftarisi','tentang',
+  'dashboard',
+  'user','tambahuser','edituser','lihatuser',
+  'cvdigital','tambahcv','editcv','lihatcv'
+];
+if(!in_array($halaman, $allowed)) $halaman = 'home';
+$isHome = ($halaman === 'home');
+
+include 'pages/component/header.php';
+echo '<body class="hold-transition layout-top-nav"><div class="wrapper">';
+include 'pages/component/navbar.php';
+
+if($isHome){
+    include 'pages/home.php';
+} else {
+    echo '<div class="content-wrapper"><div class="content"><div class="container py-3">';
+    switch($halaman){
+        // AUTH & PUBLIC
+        case "loginuser": include "auth/loginuser.php"; break;
+        case "registerpeserta": include "auth/registrasipeserta.php"; break;
+        
+        // HALAMAN DEPAN - YANG BARU
+        case "contact": include "pages/contact.php"; break;
+        case "daftarisi": include "pages/daftarisi.php"; break;
+        case "tentang": include "pages/tentang.php"; break;
+        
+        // DASHBOARD - butuh login
+        case "dashboard": 
+          if(!isset($_SESSION['login'])) header("Location: index.php?halaman=loginuser");
+          else include "pages/dashboard.php"; 
+          break;
+
+        // KELOLA user
+        case "user": include "pages/user/index.php"; break;
+        case "tambahuser": include "pages/user/tambah.php"; break;
+        case "edituser": include "pages/user/edit.php"; break;
+        case "lihatuser": include "pages/user/lihat.php"; break;
+
+        // KELOLA CV DIGITAL - INI YANG KEMARIN KURANG
+        case "cvdigital": include "pages/cvdigital/index.php"; break;
+        case "tambahcv": include "pages/cvdigital/tambah.php"; break;
+        case "editcv": include "pages/cvdigital/edit.php"; break;
+        case "lihatcv": include "pages/cvdigital/lihat.php"; break; // <-- INI KUNCINYA
+    }
+    echo '</div></div></div>';
+}
+
+include 'pages/component/footer.php';
+echo '</div></body></html>';
+
+├── auth/
+│   ├── loginuser.php
+<?php // auth/loginuser.php - Versi dengan Label & Show/Hide Password ?>
+<div class="d-flex justify-content-center align-items-center" style="min-height:80vh;">
+  <div class="login-box" style="width:400px;">
+    <div class="card card-outline card-primary shadow">
+      <div class="card-header text-center">
+        <a href="index.php?halaman=home" class="h1"><b>CV</b> Digital</a>
+      </div>
+      <div class="card-body">
+        <p class="login-box-msg">Silakan masuk untuk memulai sesi</p>
+
+        <?php if(isset($_GET['error'])): ?>
+          <div class="alert alert-danger py-2 small"><?= htmlspecialchars($_GET['error']) ?></div>
+        <?php endif; ?>
+
+        <form action="proses/proseslogin.php" method="post">
+          
+          <!-- Username dengan Label -->
+          <div class="form-group">
+            <label for="username">Username:</label>
+            <div class="input-group">
+              <input type="text" id="username" name="username" class="form-control" placeholder="Masukkan username Anda" required value="admin">
+              <div class="input-group-append">
+                <div class="input-group-text"><span class="fas fa-user"></span></div>
+              </div>
+            </div>
+            <small class="text-muted">Contoh: admin, guru</small>
+          </div>
+
+          <!-- Password dengan Label + Mata -->
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <div class="input-group">
+              <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password Anda" required value="admin123">
+              <div class="input-group-append">
+                <!-- Tombol Mata -->
+                <div class="input-group-text" style="cursor:pointer;" onclick="togglePassword()">
+                  <span class="fas fa-eye" id="eyeIcon"></span>
+                </div>
+                <div class="input-group-text">
+                  <span class="fas fa-lock"></span>
+                </div>
+              </div>
+            </div>
+            <small class="text-muted">Gunakan password yang terdaftar di JSON</small>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-8">
+              <div class="icheck-primary">
+                <input type="checkbox" id="remember">
+                <label for="remember">Remember Me</label>
+              </div>
+            </div>
+            <div class="col-4">
+              <button type="submit" name="login" class="btn btn-primary btn-block">Sign In</button>
+            </div>
+          </div>
+        </form>
+
+        <p class="mb-0 mt-3 text-center">
+          <a href="index.php?halaman=registerpeserta">Registrasi sebagai Peserta</a>
+        </p>
+        <div class="alert alert-info mt-3 py-2 small">
+          <b>Login Default:</b><br>
+          Username: <code>admin</code> / Password: <code>admin123</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword() {
+  const pass = document.getElementById('password');
+  const eye = document.getElementById('eyeIcon');
+  if (pass.type === 'password') {
+    pass.type = 'text';
+    eye.classList.remove('fa-eye');
+    eye.classList.add('fa-eye-slash');
+  } else {
+    pass.type = 'password';
+    eye.classList.remove('fa-eye-slash');
+    eye.classList.add('fa-eye');
+  }
+}
+</script>
+
+│   └── registrasipeserta.php
+<?php // auth/registrasipeserta.php - Sesuai LKPD Pertemuan 19 + Foto?>
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-9">
+      <div class="card card-outline card-primary shadow">
+        <div class="card-header text-center">
+          <h4><b>Form Biodata Peserta</b> - CV Digital</h4>
+          <p class="text-muted small mb-0">Peserta tidak perlu login - langsung isi form (Pertemuan 19)</p>
+        </div>
+        <div class="card-body p-4">
+          <!-- enctype penting untuk upload foto -->
+          <form method="POST" action="proses/prosescvdigital.php?aksi=tambah_public" enctype="multipart/form-data">
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label>Nama Lengkap *</label>
+                <input type="text" name="nama_lengkap" class="form-control" placeholder="Contoh: Ahmadi Muslim" required>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label>Tempat Lahir *</label>
+                <input type="text" name="tempat_lahir" class="form-control" placeholder="Karang Baru" required>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label>Tanggal Lahir *</label>
+                <input type="date" name="tanggal_lahir" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label>Alamat *</label>
+              <textarea name="alamat" class="form-control" placeholder="Jl. Pendidikan No.1" required></textarea>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label>Email *</label>
+                <div class="input-group">
+                  <input type="email" name="email" class="form-control" placeholder="email@smk.sch.id" required>
+                  <div class="input-group-append"><div class="input-group-text"><i class="fas fa-envelope"></i></div></div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Nomor HP *</label>
+                <div class="input-group">
+                  <input type="text" name="no_hp" class="form-control" placeholder="0822-xxxx-xxxx" required>
+                  <div class="input-group-append"><div class="input-group-text"><i class="fas fa-phone"></i></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label>Sekolah *</label>
+                <input type="text" name="sekolah" class="form-control" value="SMKN 1 Karang Baru" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Jurusan *</label>
+                <input type="text" name="jurusan" class="form-control" value="Rekayasa Perangkat Lunak" required>
+              </div>
+            </div>
+
+            <!-- Foto - Fitur Tambahan -->
+            <div class="mb-3">
+              <label>Foto Profil (Opsional)</label>
+              <div class="input-group">
+                <div class="custom-file">
+                  <input type="file" name="foto" class="custom-file-input" id="foto" accept="image/*">
+                  <label class="custom-file-label" for="foto">Pilih file foto...</label>
+                </div>
+              </div>
+              <small class="text-muted">Foto akan disimpan di assets/image/peserta/ dan namanya disimpan di JSON sebagai string</small>
+            </div>
+
+            <div class="mb-3">
+              <label>Skill / Keterampilan (pisahkan koma) *</label>
+              <input type="text" name="skills" class="form-control" placeholder="HTML, CSS, PHP, MySQL" required>
+              <small class="text-muted">Materi Array - akan disimpan sebagai ["HTML","CSS","PHP"]</small>
+            </div>
+
+            <div class="mb-3">
+              <label>Cita-cita Karier *</label>
+              <input type="text" name="cita_cita" class="form-control" placeholder="Junior Web Developer" required>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block btn-lg"><i class="fas fa-save mr-1"></i> Simpan & Lihat CV Saya</button>
+            <a href="index.php?halaman=home" class="btn btn-secondary btn-block">Kembali ke Home</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// AdminLTE custom file label
+document.querySelector('.custom-file-input').addEventListener('change', function(e){
+  var fileName = document.getElementById("foto").files[0].name;
+  var nextSibling = e.target.nextElementSibling
+  nextSibling.innerText = fileName
+});
+</script>
+
+
+│
+├── assets/
+│   ├── css/
+│   │   └── js
+│   │   └── css
+│   │
+│   ├── plugins/
+│   │
+│   └── image/
+│       ├── slider/
+│       ├── peserta/
+│       └── user/
+│
+├── pages/
+│   │
+│   ├── dashboard.php
+<?php
+// pages/dashboard.php - Dashboard Modern
+if(session_status()==PHP_SESSION_NONE) session_start();
+if(!isset($_SESSION['login'])){
+    header("Location: index.php?halaman=loginuser&error=Silakan login dulu");
+    exit;
+}
+
+// Baca data JSON
+$filePeserta = "data/datapeserta.json";
+$fileuser = "data/datauser.json";
+$dataPeserta = file_exists($filePeserta) ? (json_decode(file_get_contents($filePeserta), true) ?? []) : [];
+$datauser = file_exists($fileuser) ? (json_decode(file_get_contents($fileuser), true) ?? []) : [];
+
+// Statistik
+$totalCV = count($dataPeserta);
+$totaluser = count($datauser);
+$totalSkill = 0;
+foreach($dataPeserta as $p){ $totalSkill += count($p['skills'] ?? []); }
+
+// Ambil 10 CV terbaru - urutkan tanggal_buat DESC
+usort($dataPeserta, function($a,$b){
+    return strtotime($b['tanggal_buat'] ?? '0') <=> strtotime($a['tanggal_buat'] ?? '0');
+});
+$terbaru = array_slice($dataPeserta, 0, 10);
+?>
+<!-- Content Header -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Dashboard</h1>
+        <p class="text-muted">Selamat datang, <b><?= htmlspecialchars($_SESSION['nama']) ?></b> | Role: <?= htmlspecialchars($_SESSION['role']) ?></p>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="index.php?halaman=home">Home</a></li>
+          <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Small boxes - Modern -->
+    <div class="row">
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+          <div class="inner">
+            <h3><?= $totalCV ?></h3>
+            <p>Total CV Digital</p>
+          </div>
+          <div class="icon"><i class="fas fa-id-card"></i></div>
+          <a href="index.php?halaman=cvdigital" class="small-box-footer">Kelola <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+          <div class="inner">
+            <h3><?= $totaluser ?></h3>
+            <p>Total user / User</p>
+          </div>
+          <div class="icon"><i class="fas fa-users"></i></div>
+          <a href="index.php?halaman=user" class="small-box-footer">Kelola <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+          <div class="inner">
+            <h3><?= $totalSkill ?></h3>
+            <p>Total Skill Terdata</p>
+          </div>
+          <div class="icon"><i class="fas fa-code"></i></div>
+          <a href="#" class="small-box-footer">Materi Array <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+          <div class="inner">
+            <h3><?= date('d') ?></h3>
+            <p><?= date('F Y') ?> - PHP Fundamental</p>
+          </div>
+          <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+          <a href="index.php?halaman=registerpeserta" class="small-box-footer">Form Peserta <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabel 10 CV Terakhir - Modern -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card card-outline card-primary shadow-sm">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-list mr-2"></i> 10 CV Digital Terbaru</h3>
+            <div class="card-tools">
+              <a href="index.php?halaman=cvdigital" class="btn btn-primary btn-sm"><i class="fas fa-eye mr-1"></i> Lihat Semua</a>
+              <a href="index.php?halaman=tambahcv" class="btn btn-success btn-sm"><i class="fas fa-plus mr-1"></i> Tambah CV</a>
+            </div>
+          </div>
+          <div class="card-body table-responsive p-0">
+            <table class="table table-hover text-nowrap">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Foto</th>
+                  <th>Nama Lengkap</th>
+                  <th>Sekolah</th>
+                  <th>Skill</th>
+                  <th>Cita-cita</th>
+                  <th>Tanggal Buat</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if(empty($terbaru)): ?>
+                <tr><td colspan="8" class="text-center p-4 text-muted">Belum ada data CV. <a href="index.php?halaman=registerpeserta">Buat CV pertama</a></td></tr>
+                <?php else: 
+                $no=1; foreach($terbaru as $row): 
+                  $fotoPath = "assets/image/peserta/".($row['foto'] ?? 'default.png');
+                  if(!file_exists($fotoPath)) $fotoPath = "assets/dist/img/avatar.png";
+                ?>
+                <tr>
+                  <td><?= $no++ ?></td>
+                  <td><img src="<?= $fotoPath ?>" class="img-circle" style="width:35px;height:35px;object-fit:cover;"></td>
+                  <td><b><?= htmlspecialchars($row['nama_lengkap']) ?></b><br><small class="text-muted"><?= htmlspecialchars($row['email']) ?></small></td>
+                  <td><?= htmlspecialchars($row['sekolah']) ?><br><small><?= htmlspecialchars($row['jurusan']) ?></small></td>
+                  <td>
+                    <?php foreach(array_slice($row['skills'] ?? [],0,3) as $sk): ?>
+                      <span class="badge badge-info"><?= htmlspecialchars($sk) ?></span>
+                    <?php endforeach; ?>
+                    <?php if(count($row['skills'] ?? [])>3) echo '<span class="badge badge-light">+'.(count($row['skills'])-3).'</span>'; ?>
+                  </td>
+                  <td><?= htmlspecialchars($row['cita_cita']) ?></td>
+                  <td><small><?= date('d/m/Y H:i', strtotime($row['tanggal_buat'] ?? 'now')) ?></small></td>
+                  <td>
+                    <a href="index.php?halaman=lihatcv&id=<?= $row['id'] ?>" class="btn btn-xs btn-primary"><i class="fas fa-eye"></i></a>
+                    <a href="index.php?halaman=editcv&id=<?= $row['id'] ?>" class="btn btn-xs btn-warning"><i class="fas fa-edit"></i></a>
+                  </td>
+                </tr>
+                <?php endforeach; endif; ?>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer text-muted small">
+            Menampilkan <?= count($terbaru) ?> dari <?= $totalCV ?> data | Data disimpan di <code>data/datapeserta.json</code> | Materi: Array, Perulangan, File JSON, Sorting
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Alur APK -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card bg-gradient-primary">
+          <div class="card-body">
+            <h5><i class="fas fa-lightbulb mr-2"></i>Alur APK - PHP Fundamental</h5>
+            <p class="mb-0">Form Biodata <code>$_POST</code> → Validasi <code>isset() & empty()</code> → Upload Foto <code>$_FILES</code> → Simpan <code>foto sebagai string</code> di JSON → Tampil CV dengan Foto Kanan Atas | Route di <code>index.php</code> murni</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+│   ├── home.php
+<?php // pages/home.php - Homepage Carousel CV Digital ?>
+<div id="heroCarousel" class="carousel slide" data-ride="carousel" data-interval="5000">
+  <ol class="carousel-indicators">
+    <li data-target="#heroCarousel" data-slide-to="0" class="active"></li>
+    <li data-target="#heroCarousel" data-slide-to="1"></li>
+    <li data-target="#heroCarousel" data-slide-to="2"></li>
+  </ol>
+  <div class="carousel-inner">
+    <!-- SLIDE 1 - pakai asset kamu -->
+    <div class="carousel-item active">
+      <div style="height:90vh; background:url('assets/image/slider/slider1.jpg') center center/cover no-repeat; position:relative;">
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,.55);"></div>
+        <div class="d-flex flex-column justify-content-center align-items-center text-center text-white h-100 px-3" style="position:relative;">
+          <h1 class="display-3 font-weight-bold">Selamat Datang di<br>CV Digital</h1>
+          <p class="lead">Bangun profil profesionalmu dalam satu platform digital.</p>
+          <a href="index.php?halaman=registerpeserta" class="btn btn-primary btn-lg mt-2"><i class="fas fa-user-plus mr-2"></i> Registrasi Peserta</a>
+        </div>
+      </div>
+    </div>
+    <!-- SLIDE 2 -->
+    <div class="carousel-item">
+      <div style="height:90vh; background:url('assets/image/slider/slider2.jpg') center center/cover no-repeat; position:relative;">
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,.55);"></div>
+        <div class="d-flex flex-column justify-content-center align-items-center text-center text-white h-100 px-3" style="position:relative;">
+          <h1 class="display-3 font-weight-bold">Tampilkan Potensi Terbaikmu</h1>
+          <p class="lead">Lengkapi biodata, pendidikan, dan keahlianmu.</p>
+          <a href="index.php?halaman=registerpeserta" class="btn btn-primary btn-lg mt-2">Mulai Sekarang <i class="fas fa-arrow-right ml-2"></i></a>
+        </div>
+      </div>
+    </div>
+    <!-- SLIDE 3 -->
+    <div class="carousel-item">
+      <div style="height:90vh; background:url('assets/image/slider/slider3.jpg') center center/cover no-repeat; position:relative;">
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,.55);"></div>
+        <div class="d-flex flex-column justify-content-center align-items-center text-center text-white h-100 px-3" style="position:relative;">
+          <h1 class="display-3 font-weight-bold">Jadikan Profilmu<br>Lebih Profesional</h1>
+          <p class="lead">Sederhana, rapi, dan mudah diperkenalkan ke perusahaan.</p>
+          <a href="index.php?halaman=registerpeserta" class="btn btn-primary btn-lg mt-2">Buat CV Digital <i class="fas fa-arrow-right ml-2"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a class="carousel-control-prev" href="#heroCarousel" role="button" data-slide="prev"><span class="carousel-control-prev-icon"></span></a>
+  <a class="carousel-control-next" href="#heroCarousel" role="button" data-slide="next"><span class="carousel-control-next-icon"></span></a>
+</div>
+
+<!-- Section bawah carousel - biar tidak kosong, untuk penilaian Teaching Factory -->
+<section class="py-5 bg-white">
+  <div class="container text-center">
+    <h4>Alur CV Digital - PHP Fundamental</h4>
+    <p class="text-muted">Form Biodata → $_POST → Validasi isset() & empty() → Simpan JSON → Tampil CV</p>
+    <div class="row mt-4">
+      <div class="col-md-4"><div class="card shadow-sm p-3"><i class="fas fa-edit fa-2x text-primary mb-2"></i><h6>Input Biodata</h6><small>Variabel & Tipe Data</small></div></div>
+      <div class="col-md-4"><div class="card shadow-sm p-3"><i class="fas fa-check fa-2x text-success mb-2"></i><h6>Validasi</h6><small>Percabangan & Function</small></div></div>
+      <div class="col-md-4"><div class="card shadow-sm p-3"><i class="fas fa-file-alt fa-2x text-warning mb-2"></i><h6>Output CV</h6><small>Array & Perulangan</small></div></div>
+    </div>
+  </div>
+</section>
+
+
+│   ├── contact.php
+<div class="row mt-4">
+  <div class="col-md-6">
+    <div class="card card-primary card-outline shadow">
+      <div class="card-header"><h5><i class="fas fa-envelope mr-2"></i> Hubungi Kami</h5></div>
+      <div class="card-body">
+        <p><i class="fas fa-school mr-2 text-primary"></i> SMKN 1 Karang Baru<br>
+        <i class="fas fa-map-marker-alt mr-2 text-danger"></i> Aceh Tamiang - Aceh<br>
+        <i class="fas fa-envelope mr-2 text-success"></i> ahmadimuslim55@guru.smk.belajar.id<br>
+        <i class="fas fa-code mr-2 text-info"></i> Mata Pelajaran: PHP Fundamental - RPL</p>
+        <hr>
+        <form>
+          <div class="mb-3"><label>Nama</label><input type="text" class="form-control" placeholder="Nama Anda"></div>
+          <div class="mb-3"><label>Email</label><input type="email" class="form-control" placeholder="email@..."></div>
+          <div class="mb-3"><label>Pesan</label><textarea class="form-control" rows="4" placeholder="Tulis pesan..."></textarea></div>
+          <button type="button" class="btn btn-primary btn-block" onclick="alert('Pesan terkirim (simulasi)! Materi Form POST')">Kirim Pesan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card bg-gradient-primary text-white shadow">
+      <div class="card-body">
+        <h5><i class="fas fa-info-circle mr-2"></i> Tentang APK CV Digital</h5>
+        <p>APK ini dibuat untuk pembelajaran <b>PHP Fundamental</b> Pertemuan 19: <br>
+        <code class="text-white">isset(), empty(), $_POST, $_GET, $_FILES, Array, Function, JSON</code><br>
+        Data disimpan di <code class="text-white">data/datauser.json</code> dan <code class="text-white">data/datapeserta.json</code> dengan foto sebagai string di <code class="text-white">assets/image/user/</code> dan <code class="text-white">assets/image/peserta/</code></p>
+      </div>
+    </div>
+    <img src="assets/image/slider/slider1.jpg" onerror="this.src='assets/dist/img/photo1.png'" class="img-fluid rounded shadow" style="width:100%;height:280px;object-fit:cover">
+  </div>
+</div>
+
+│   ├── tentang.php
+<div class="row mt-4">
+  <div class="col-md-8 mx-auto">
+    <div class="card card-outline card-primary shadow text-center">
+      <div class="card-body p-5">
+        <img src="assets/image/user/default.png" onerror="this.src='assets/dist/img/avatar.png'" class="img-circle elevation-3 mb-3" style="width:100px;height:100px;object-fit:cover">
+        <h3>Aplikasi CV Digital</h3>
+        <p class="text-muted">Dibuat oleh <b>Ahmadi Muslim</b> - Guru SMKN 1 Karang Baru</p>
+        <hr>
+        <p>Aplikasi ini dibuat untuk memenuhi tugas <b>PHP Fundamental - Pertemuan 19b</b>. Aplikasi menerapkan CRUD tanpa database (menggunakan file JSON), upload foto yang disimpan sebagai string, dan routing murni menggunakan <code>index.php?halaman=</code>.</p>
+        <div class="row mt-4 text-left">
+          <div class="col-md-6"><b>Fitur Utama:</b><ul><li>Login pakai JSON (datauser.json)</li><li>Registrasi Peserta Publik</li><li>Dashboard dengan 10 CV terbaru</li><li>Kelola User & Kelola CV Digital + Foto</li><li>View CV dengan foto kanan atas</li></ul></div>
+          <div class="col-md-6"><b>Teknologi:</b><ul><li>PHP Native + JSON</li><li>AdminLTE 3 + Bootstrap 4</li><li>FontAwesome</li><li>Laragon</li></ul></div>
+        </div>
+        <a href="index.php?halaman=home" class="btn btn-primary mt-3">Kembali ke Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+│   ├── daftarisi.php
+<div class="card card-outline card-info shadow mt-4">
+  <div class="card-header"><h5><i class="fas fa-list-ol mr-2"></i> Daftar Isi - Alur APK CV Digital Ahmad Muslim</h5></div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <h6 class="text-primary">1. Struktur Folder (Tree Diagram)</h6>
+        <pre class="bg-light p-3 rounded" style="font-size:.85rem">cvdigitalahmadimuslim/
+├── index.php (router murni ?halaman=)
+├── auth/loginuser.php & registrasipeserta.php
+├── assets/image/peserta/ & user/
+├── pages/
+│   ├── dashboard.php (10 CV terbaru)
+│   ├── component/header,navbar,footer
+│   ├── cvdigital/index,tambah,edit,lihat
+│   └── user/index,tambah,edit,lihat
+├── proses/proseslogin, prosescvdigital, prosesuser
+└── data/datapeserta.json & datauser.json</pre>
+      </div>
+      <div class="col-md-6">
+        <h6 class="text-primary">2. Alur Materi PHP Fundamental</h6>
+        <table class="table table-sm table-bordered">
+          <tr><th>Materi</th><th>Implementasi</th></tr>
+          <tr><td>Form & $_POST</td><td>Registrasi Peserta & Tambah CV</td></tr>
+          <tr><td>isset() & empty()</td><td>Validasi di prosescvdigital.php</td></tr>
+          <tr><td>$_FILES</td><td>Upload foto, simpan nama file sebagai string di JSON</td></tr>
+          <tr><td>Array & Perulangan</td><td>explode skills, foreach data peserta</td></tr>
+          <tr><td>Function</td><td>baca() & tulis() JSON, validasi()</td></tr>
+          <tr><td>$_SESSION</td><td>Login user, tampilkan menu Kelola jika isset($_SESSION['login'])</td></tr>
+          <tr><td>$_GET</td><td>Router ?halaman= dan ?id=</td></tr>
+        </table>
+        <a href="index.php?halaman=registerpeserta" class="btn btn-success btn-block"><i class="fas fa-play mr-1"></i> Mulai: Registrasi Peserta</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+│   │
+│   ├── component/
+│   │   ├── header.php    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV Digital - SMKN 1 Karang Baru</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet" href="assets/plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="assets/dist/css/adminlte.min.css">
+
+  <style>
+    /* LEbarkan WEB tapi tidak Fullscreen - Profesional */
+    @media (min-width: 1200px) {
+      .container {
+        max-width: 1360px !important;
+        width: 95% !important;
+      }
+    }
+    /* Biar navbar tidak turun baris */
+    .navbar-nav .nav-item {
+      white-space: nowrap;
+    }
+    .navbar .nav-link {
+      padding-left: .7rem !important;
+      padding-right: .7rem !important;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+
+
+│   │   ├── navbar.php        # menu dashboard, kelola user, dan kelola cv muncul ketika sudah login (pakai if)
+<?php 
+if (session_status() == PHP_SESSION_NONE) session_start(); 
+$isLogin = isset($_SESSION['login']);
+?>
+<style>
+  /* FINAL FIX: Lebar profesional, tidak fullscreen */
+  @media (min-width: 1200px) {
+    .main-header .container {
+      max-width: 1360px !important;
+      width: 95% !important;
+    }
+  }
+  /* Biar menu tidak turun baris */
+  .main-header .navbar-nav .nav-link {
+    white-space: nowrap;
+    padding-left: .65rem !important;
+    padding-right: .65rem !important;
+    font-size: .93rem;
+  }
+</style>
+
+<nav class="main-header navbar navbar-expand-lg navbar-white navbar-light shadow-sm">
+  <div class="container">
+    <a href="index.php?halaman=home" class="navbar-brand">
+      <b>CV</b>Digital
+    </a>
+
+    <button class="navbar-toggler order-1" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse order-3" id="navbarCollapse">
+      <!-- Left navbar links -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a href="index.php?halaman=home" class="btn btn-danger"><i class="fas fa-home mr-1"></i> Home</a>
+        </li>
+        <li class="nav-item">
+          <a href="index.php?halaman=contact" class="nav-link">Kontak</a>
+        </li>
+        <li class="nav-item">
+          <a href="index.php?halaman=daftarisi" class="nav-link">Daftar Isi</a>
+        </li>
+        <li class="nav-item">
+          <a href="index.php?halaman=tentang" class="nav-link">Tentang</a>
+        </li>
+
+        <?php if($isLogin): // MUNCUL SETELAH LOGIN - sesuai spek ?>
+        <li class="nav-item">
+          <a href="index.php?halaman=user" class="nav-link font-weight-bold text-primary">
+            <i class="fas fa-users mr-1"></i> Kelola User
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="index.php?halaman=cvdigital" class="nav-link font-weight-bold text-primary">
+            <i class="fas fa-book mr-1"></i> Kelola cvdigital
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="index.php?halaman=dashboard" class="nav-link font-weight-bold text-primary">
+            <i class="fas fa-id-card mr-1"></i> Dashboard
+          </a>
+        </li>
+        <?php endif; ?>
+      </ul>
+
+      <!-- Right navbar links -->
+      <ul class="navbar-nav ml-auto align-items-center">
+        <?php if(!$isLogin): // SEBELUM LOGIN ?>
+          <li class="nav-item">
+            <a href="index.php?halaman=loginuser" class="nav-link">
+              <i class="fas fa-sign-in-alt mr-1"></i> Login User
+            </a>
+          </li>
+          <li class="nav-item ml-1">
+            <a href="index.php?halaman=registerpeserta" class="btn btn-primary ">
+              <i class="fas fa-user-plus mr-1"></i> Registrasi Peserta
+            </a>
+          </li>
+        <?php else: // SETELAH LOGIN ?>
+          <li class="nav-item d-none d-xl-block">
+            <span class="nav-link">Halo, <b><?= htmlspecialchars($_SESSION['nama'] ?? $_SESSION['username']) ?></b></span>
+          </li>
+          <li class="nav-item">
+            <a href="proses/proseslogin.php?aksi=logout" class="btn btn-dark">
+              <i class="fas fa-sign-out-alt mr-1"></i> Logout
+            </a>
+          </li>
+        <?php endif; ?>
+
+        <li class="nav-item ml-2">
+          <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+            <i class="fas fa-search"></i>
+          </a>
+          <div class="navbar-search-block">
+            <form class="form-inline">
+              <div class="input-group input-group-sm">
+                <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+                <div class="input-group-append">
+                  <button class="btn btn-navbar" type="submit"><i class="fas fa-search"></i></button>
+                  <button class="btn btn-navbar" type="button" data-widget="navbar-search"><i class="fas fa-times"></i></button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+│   │   └── footer.php
+<footer class="main-footer">
+  <div class="float-right d-none d-sm-block"><b>Version</b> 3.2.0</div>
+  <strong>Copyright &copy; 2026 <a href="#">Ahmadi Muslim</a>.</strong>
+</footer>
+<script src="assets/plugins/jquery/jquery.min.js"></script>
+<script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="assets/dist/js/adminlte.min.js"></script>
+
+
+│   │
+│   ├── cvdigital/
+│   │   ├── index.php         # Data CV peserta
+<?php
+$file="data/datapeserta.json";
+$data=file_exists($file)?(json_decode(file_get_contents($file),true)??[]):[];
+// urutkan terbaru dulu
+usort($data, fn($a,$b)=> strtotime($b['tanggal_buat']??0) <=> strtotime($a['tanggal_buat']??0));
+?>
+<div class="card card-outline card-primary shadow">
+  <div class="card-header">
+    <h3 class="card-title"><i class="fas fa-id-card mr-2"></i> Data CV Digital Peserta (<?= count($data)?>)</h3>
+    <div class="card-tools">
+      <a href="index.php?halaman=tambahcv" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Tambah CV</a>
+    </div>
+  </div>
+  <div class="card-body table-responsive p-0">
+    <table class="table table-hover text-nowrap">
+      <thead><tr><th>#</th><th>Foto</th><th>Nama Lengkap</th><th>Sekolah</th><th>Skill</th><th>Cita-cita</th><th>Tanggal Buat</th><th>Aksi</th></tr></thead>
+      <tbody>
+      <?php if(empty($data)):?>
+        <tr><td colspan="8" class="text-center p-4 text-muted">Belum ada CV. <a href="index.php?halaman=registerpeserta">Buat dari form peserta</a></td></tr>
+      <?php else: $no=1; foreach($data as $row):
+        $foto = $row['foto']??'default.png';
+        $path="assets/image/peserta/".$foto;
+        if(!file_exists($path)) $path="assets/dist/img/avatar.png";
+     ?>
+        <tr>
+          <td><?= $no++?></td>
+          <td><img src="<?= $path?>" class="img-circle" style="width:38px;height:38px;object-fit:cover"></td>
+          <td><b><?= htmlspecialchars($row['nama_lengkap']??'')?></b><br><small class="text-muted"><?= htmlspecialchars($row['email']??'')?> | <?= htmlspecialchars($row['no_hp']??'')?></small></td>
+          <td><?= htmlspecialchars($row['sekolah']??'')?><br><small><?= htmlspecialchars($row['jurusan']??'')?></small></td>
+          <td>
+            <?php foreach(array_slice($row['skills']??[],0,3) as $sk):?>
+              <span class="badge badge-info"><?= htmlspecialchars($sk)?></span>
+            <?php endforeach;?>
+          </td>
+          <td><?= htmlspecialchars($row['cita_cita']??'')?></td>
+          <td><small><?= date('d/m/Y H:i', strtotime($row['tanggal_buat']??'now'))?></small></td>
+          <td>
+            <a href="index.php?halaman=lihatcv&id=<?= $row['id']??0?>" class="btn btn-xs btn-primary"><i class="fas fa-eye"></i></a>
+            <a href="index.php?halaman=editcv&id=<?= $row['id']??0?>" class="btn btn-xs btn-warning"><i class="fas fa-edit"></i></a>
+            <a href="proses/prosescvdigital.php?aksi=hapus&id=<?= $row['id']??0?>" onclick="return confirm('Hapus CV <?= htmlspecialchars($row['nama_lengkap']??'')?>? Foto juga akan terhapus!')" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i></a>
+          </td>
+        </tr>
+      <?php endforeach; endif;?>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+│   │   ├── tambah.php        # Tambah CV
+<div class="card card-primary card-outline shadow">
+  <div class="card-header bg-primary text-white"><h5><i class="fas fa-plus mr-2"></i> Tambah CV Digital (Admin)</h5></div>
+  <div class="card-body">
+    <form method="POST" action="proses/prosescvdigital.php?aksi=tambah" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-md-6 mb-3"><label>Nama Lengkap *</label><input type="text" name="nama_lengkap" class="form-control" placeholder="Ahmadi Muslim" required></div>
+        <div class="col-md-3 mb-3"><label>Tempat Lahir *</label><input type="text" name="tempat_lahir" class="form-control" required></div>
+        <div class="col-md-3 mb-3"><label>Tanggal Lahir *</label><input type="date" name="tanggal_lahir" class="form-control" required></div>
+      </div>
+      <div class="mb-3"><label>Alamat *</label><textarea name="alamat" class="form-control" required></textarea></div>
+      <div class="row">
+        <div class="col-md-6 mb-3"><label>Email *</label><input type="email" name="email" class="form-control" required></div>
+        <div class="col-md-6 mb-3"><label>No HP *</label><input type="text" name="no_hp" class="form-control" required></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3"><label>Sekolah *</label><input type="text" name="sekolah" class="form-control" value="SMKN 1 Karang Baru" required></div>
+        <div class="col-md-6 mb-3"><label>Jurusan *</label><input type="text" name="jurusan" class="form-control" value="Rekayasa Perangkat Lunak" required></div>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label>Foto Profil</label>
+          <div class="custom-file"><input type="file" name="foto" class="custom-file-input" id="fotoTambahCV" accept="image/*" onchange="previewFoto(this,'prevTambahCV')"><label class="custom-file-label">Pilih foto...</label></div>
+          <img id="prevTambahCV" src="#" class="img-thumbnail mt-2" style="width:100px;height:100px;object-fit:cover;display:none">
+        </div>
+        <div class="col-md-6 mb-3"><label>Skill (pisahkan koma) *</label><input type="text" name="skills" class="form-control" placeholder="HTML, PHP, Python" required></div>
+      </div>
+      <div class="mb-3"><label>Cita-cita Karier *</label><input type="text" name="cita_cita" class="form-control" placeholder="Web Developer, Cyber Security" required></div>
+      <button type="submit" class="btn btn-primary btn-block">Simpan CV</button>
+      <a href="index.php?halaman=cvdigital" class="btn btn-secondary btn-block">Kembali</a>
+    </form>
+  </div>
+</div>
+<script>function previewFoto(i,p){const pr=document.getElementById(p); if(i.files[0]){pr.style.display='block'; pr.src=URL.createObjectURL(i.files[0]); i.nextElementSibling.innerText=i.files[0].name;}}</script>
+
+
+│   │   ├── edit.php          # Edit CV
+<?php
+$id=$_GET['id']??0; $file="data/datapeserta.json";
+$data=file_exists($file)?(json_decode(file_get_contents($file),true)??[]):[];
+$edit=null; foreach($data as $r){ if(($r['id']??0)==$id){ $edit=$r; break; } }
+if(!$edit){ echo '<div class="alert alert-danger m-3">CV tidak ditemukan</div>'; return; }
+$fotoLama=$edit['foto']??'default.png'; $pathLama="assets/image/peserta/".$fotoLama;
+if(!file_exists($pathLama)) $pathLama="assets/dist/img/avatar.png";
+?>
+<div class="card card-warning card-outline shadow">
+  <div class="card-header bg-warning text-white"><h5>Edit CV #<?= $edit['id']?> - <?= htmlspecialchars($edit['nama_lengkap']??'')?></h5></div>
+  <div class="card-body">
+    <form method="POST" action="proses/prosescvdigital.php?aksi=edit" enctype="multipart/form-data">
+      <input type="hidden" name="id" value="<?= $edit['id']?>">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="row">
+            <div class="col-md-6 mb-3"><label>Nama Lengkap *</label><input type="text" name="nama_lengkap" value="<?= htmlspecialchars($edit['nama_lengkap']??'')?>" class="form-control" required></div>
+            <div class="col-md-3 mb-3"><label>Tempat Lahir *</label><input type="text" name="tempat_lahir" value="<?= htmlspecialchars($edit['tempat_lahir']??'')?>" class="form-control" required></div>
+            <div class="col-md-3 mb-3"><label>Tanggal Lahir *</label><input type="date" name="tanggal_lahir" value="<?= htmlspecialchars($edit['tanggal_lahir']??'')?>" class="form-control" required></div>
+          </div>
+          <div class="mb-3"><label>Alamat *</label><textarea name="alamat" class="form-control" required><?= htmlspecialchars($edit['alamat']??'')?></textarea></div>
+          <div class="row">
+            <div class="col-md-6 mb-3"><label>Email *</label><input type="email" name="email" value="<?= htmlspecialchars($edit['email']??'')?>" class="form-control" required></div>
+            <div class="col-md-6 mb-3"><label>No HP *</label><input type="text" name="no_hp" value="<?= htmlspecialchars($edit['no_hp']??'')?>" class="form-control" required></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3"><label>Sekolah *</label><input type="text" name="sekolah" value="<?= htmlspecialchars($edit['sekolah']??'')?>" class="form-control" required></div>
+            <div class="col-md-6 mb-3"><label>Jurusan *</label><input type="text" name="jurusan" value="<?= htmlspecialchars($edit['jurusan']??'')?>" class="form-control" required></div>
+          </div>
+          <div class="mb-3"><label>Skill (pisahkan koma) *</label><input type="text" name="skills" value="<?= htmlspecialchars(implode(', ', $edit['skills']??[]))?>" class="form-control" required></div>
+          <div class="mb-3"><label>Cita-cita *</label><input type="text" name="cita_cita" value="<?= htmlspecialchars($edit['cita_cita']??'')?>" class="form-control" required></div>
+        </div>
+        <div class="col-md-4 text-center">
+          <label>Foto Saat Ini</label><br>
+          <img src="<?= $pathLama?>" class="img-thumbnail" style="width:150px;height:180px;object-fit:cover"><br>
+          <small class="badge badge-info mt-2"><?= htmlspecialchars($fotoLama)?></small>
+          <div class="mt-3 text-left">
+            <label>Ganti Foto (opsional)</label>
+            <div class="custom-file"><input type="file" name="foto" class="custom-file-input" id="fotoEditCV" accept="image/*" onchange="previewFoto(this,'prevEditCV')"><label class="custom-file-label">Pilih foto baru...</label></div>
+            <img id="prevEditCV" src="#" class="img-thumbnail mt-2" style="width:150px;height:180px;object-fit:cover;display:none">
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-warning btn-block">Update CV</button>
+      <a href="index.php?halaman=cvdigital" class="btn btn-secondary btn-block">Kembali</a>
+    </form>
+  </div>
+</div>
+<script>function previewFoto(i,p){const pr=document.getElementById(p); if(i.files[0]){pr.style.display='block'; pr.src=URL.createObjectURL(i.files[0]); i.nextElementSibling.innerText=i.files[0].name;}}</script>
+
+
+│   │   └── lihat.php         # Detail CV
+<?php
+// pages/cvdigital/lihat.php - View CV dengan foto kanan atas
+$id = $_GET['id'] ?? 0;
+$file = "data/datapeserta.json";
+$data = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+$view = null;
+foreach($data as $row){ if($row['id']==$id){ $view=$row; break; } }
+
+if(!$view){
+  echo '<div class="alert alert-danger m-4">Data CV dengan ID '.$id.' tidak ditemukan. <a href="index.php?halaman=cvdigital">Kembali</a></div>';
+  return;
+}
+$foto = $view['foto'] ?? 'default.png';
+$pathFoto = "assets/image/peserta/".$foto;
+if(!file_exists($pathFoto)) $pathFoto = "assets/image/peserta/default.png";
+?>
+<div class="card card-primary card-outline shadow-lg">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fas fa-id-card mr-2"></i> Curriculum Vitae Digital</h5>
+  </div>
+  <div class="card-body p-4" id="areaCV">
+    <!-- HEADER CV + FOTO KANAN ATAS -->
+    <div class="row border-bottom pb-3 mb-3">
+      <div class="col-md-8">
+        <h2 class="font-weight-bold mb-0"><?= htmlspecialchars($view['nama_lengkap']) ?></h2>
+        <p class="text-muted mb-1"><?= htmlspecialchars($view['cita_cita']) ?></p>
+        <small class="text-muted">ID CV: #<?= $view['id'] ?> | Dibuat: <?= $view['tanggal_buat'] ?></small>
+      </div>
+      <div class="col-md-4 text-right">
+        <img src="<?= $pathFoto ?>" alt="Foto <?= htmlspecialchars($view['nama_lengkap']) ?>" 
+             class="img-thumbnail shadow" style="width:140px; height:180px; object-fit:cover;">
+        <div class="mt-2"><small class="badge badge-info"><?= $foto ?></small></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <h6 class="text-primary"><i class="fas fa-user mr-1"></i> Data Pribadi</h6>
+        <table class="table table-sm table-borderless">
+          <tr><td width="130">Tempat Lahir</td><td>: <?= htmlspecialchars($view['tempat_lahir']) ?></td></tr>
+          <tr><td>Tanggal Lahir</td><td>: <?= date('d F Y', strtotime($view['tanggal_lahir'])) ?></td></tr>
+          <tr><td>Alamat</td><td>: <?= nl2br(htmlspecialchars($view['alamat'])) ?></td></tr>
+          <tr><td>Email</td><td>: <?= htmlspecialchars($view['email']) ?></td></tr>
+          <tr><td>No HP</td><td>: <?= htmlspecialchars($view['no_hp']) ?></td></tr>
+        </table>
+      </div>
+      <div class="col-md-6">
+        <h6 class="text-primary"><i class="fas fa-graduation-cap mr-1"></i> Pendidikan</h6>
+        <table class="table table-sm table-borderless">
+          <tr><td width="130">Sekolah</td><td>: <?= htmlspecialchars($view['sekolah']) ?></td></tr>
+          <tr><td>Jurusan</td><td>: <?= htmlspecialchars($view['jurusan']) ?></td></tr>
+          <tr><td>Cita-cita</td><td>: <b><?= htmlspecialchars($view['cita_cita']) ?></b></td></tr>
+        </table>
+
+        <h6 class="text-primary mt-4"><i class="fas fa-code mr-1"></i> Keahlian</h6>
+        <div>
+          <?php foreach($view['skills'] as $skill): ?>
+            <span class="badge badge-success mr-1 mb-1 p-2"><?= htmlspecialchars(trim($skill)) ?></span>
+          <?php endforeach; ?>
+        </div>
+        <small class="text-muted d-block mt-1">Materi: Array & Perulangan</small>
+      </div>
+    </div>
+
+    <div class="alert alert-light border mt-4">
+      <small><i class="fas fa-info-circle mr-1"></i> Data ini disimpan di <code>data/datapeserta.json</code> dengan foto sebagai string <code><?= htmlspecialchars($view['foto']) ?></code> yang file fisiknya ada di <code>assets/image/peserta/</code>. Materi: Function, isset(), empty(), $_POST, $_FILES</small>
+    </div>
+  </div>
+  <div class="card-footer text-right">
+    <a href="index.php?halaman=cvdigital" class="btn btn-secondary"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Daftar</a>
+    <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print mr-1"></i> Cetak CV</button>
+    <a href="index.php?halaman=editcv&id=<?= $view['id'] ?>" class="btn btn-warning"><i class="fas fa-edit mr-1"></i> Edit</a>
+  </div>
+</div>
+
+
+│   │
+│   └── user/
+│       ├── index.php         # Data user
+<?php
+$file="data/datauser.json";
+$data=file_exists($file)?(json_decode(file_get_contents($file),true)??[]):[];
+?>
+<div class="card card-outline card-primary shadow">
+  <div class="card-header">
+    <h3 class="card-title"><i class="fas fa-users mr-2"></i> Data User</h3>
+    <div class="card-tools">
+      <a href="index.php?halaman=tambahuser" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Tambah User</a>
+    </div>
+  </div>
+  <div class="card-body table-responsive p-0">
+    <table class="table table-hover">
+      <thead><tr><th>#</th><th>Foto</th><th>Username</th><th>Nama</th><th>Role</th><th>Email</th><th>Aksi</th></tr></thead>
+      <tbody>
+      <?php if(empty($data)): ?>
+        <tr><td colspan="7" class="text-center p-3">Belum ada user.</td></tr>
+      <?php else: foreach($data as $row):
+        $foto = $row['foto'] ?? 'default.png';
+        $fotoPath="assets/image/user/".$foto;
+        if(!file_exists($fotoPath)) $fotoPath="assets/image/peserta/".$foto; // fallback karena foto kamu tadi di folder peserta
+        if(!file_exists($fotoPath)) $fotoPath="assets/dist/img/avatar.png";
+      ?>
+        <tr>
+          <td><?= $row['id'] ?? '-' ?></td>
+          <td><img src="<?= $fotoPath ?>" class="img-circle" style="width:35px;height:35px;object-fit:cover"></td>
+          <td><b><?= htmlspecialchars($row['username'] ?? '') ?></b></td>
+          <td><?= htmlspecialchars($row['nama'] ?? '') ?></td>
+          <td><span class="badge badge-info"><?= htmlspecialchars($row['role'] ?? 'user') ?></span></td>
+          <td><?= htmlspecialchars($row['email'] ?? '-') ?></td>
+          <td>
+            <a href="index.php?halaman=lihatuser&id=<?= $row['id'] ?? 0 ?>" class="btn btn-xs btn-info"><i class="fas fa-eye"></i></a>
+            <a href="index.php?halaman=edituser&id=<?= $row['id'] ?? 0 ?>" class="btn btn-xs btn-warning"><i class="fas fa-edit"></i></a>
+            <a href="proses/prosesuser.php?aksi=hapus&id=<?= $row['id'] ?? 0 ?>" onclick="return confirm('Hapus user ini?')" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i></a>
+          </td>
+        </tr>
+      <?php endforeach; endif; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+│       ├── tambah.php
+<?php // pages/user/tambah.php - FINAL dengan Foto?>
+<div class="card card-primary card-outline shadow">
+  <div class="card-header bg-primary text-white">
+    <h5><i class="fas fa-user-plus mr-2"></i> Tambah User Baru</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="proses/prosesuser.php?aksi=tambah" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label>Username *</label>
+          <input type="text" name="username" class="form-control" placeholder="contoh: user" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label>Password *</label>
+          <div class="input-group">
+            <input type="password" name="password" id="passTambah" class="form-control" placeholder="user123" required>
+            <div class="input-group-append">
+              <div class="input-group-text" style="cursor:pointer" onclick="togglePass('passTambah','eyeTambah')">
+                <i class="fas fa-eye" id="eyeTambah"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label>Nama Lengkap *</label>
+          <input type="text" name="nama" class="form-control" placeholder="useristrator" required>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label>Role *</label>
+          <select name="role" class="form-control">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="operator">Operator</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label>Email (Opsional)</label>
+          <input type="email" name="email" class="form-control" placeholder="boleh dikosongkan">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label>Foto Profil</label>
+        <div class="custom-file">
+          <input type="file" name="foto" class="custom-file-input" id="fotoTambah" accept="image/*" onchange="previewFoto(this,'previewTambah')">
+          <label class="custom-file-label" for="fotoTambah">Pilih file foto...</label>
+        </div>
+        <small class="text-muted">Disimpan di <code>assets/image/user/</code> dan nama file disimpan sebagai string di JSON</small>
+        <div class="mt-2">
+          <img id="previewTambah" src="assets/dist/img/avatar.png" class="img-thumbnail" style="width:120px;height:120px;object-fit:cover;display:none">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-save mr-1"></i> Simpan User</button>
+      <a href="index.php?halaman=user" class="btn btn-secondary btn-block">Kembali ke Data User</a>
+    </form>
+  </div>
+</div>
+
+<script>
+function togglePass(id, eyeId){
+  const p=document.getElementById(id); const e=document.getElementById(eyeId);
+  if(p.type==='password'){p.type='text'; e.classList.remove('fa-eye'); e.classList.add('fa-eye-slash');}
+  else {p.type='password'; e.classList.add('fa-eye'); e.classList.remove('fa-eye-slash');}
+}
+function previewFoto(input, previewId){
+  const preview=document.getElementById(previewId);
+  const file=input.files[0];
+  if(file){
+    preview.style.display='block';
+    preview.src=URL.createObjectURL(file);
+    input.nextElementSibling.innerText=file.name;
+  }
+}
+</script>
+
+
+│       ├── edit.php
+
+<?php // pages/user/edit.php - FINAL dengan Foto?>
+<?php
+$id=$_GET['id']??0;
+$file="data/datauser.json";
+$data=file_exists($file)?(json_decode(file_get_contents($file),true)??[]):[];
+$edit=null; foreach($data as $r){ if(($r['id']??0)==$id){ $edit=$r; break; } }
+if(!$edit){ echo '<div class="alert alert-danger m-3">User ID '.$id.' tidak ditemukan</div>'; return; }
+
+$fotoLama = $edit['foto']?? 'default.png';
+$pathLama = "assets/image/user/".$fotoLama;
+if(!file_exists($pathLama)) $pathLama = "assets/image/peserta/".$fotoLama;
+if(!file_exists($pathLama)) $pathLama = "assets/dist/img/avatar.png";
+?>
+<div class="card card-warning card-outline shadow">
+  <div class="card-header bg-warning text-white">
+    <h5><i class="fas fa-user-edit mr-2"></i> Edit User #<?= $edit['id']?? ''?> - <?= htmlspecialchars($edit['username']?? '')?></h5>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="proses/prosesuser.php?aksi=edit" enctype="multipart/form-data">
+      <input type="hidden" name="id" value="<?= $edit['id']?? 0?>">
+
+      <div class="row">
+        <div class="col-md-8">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label>Username *</label>
+              <input type="text" name="username" value="<?= htmlspecialchars($edit['username']?? '')?>" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Password *</label>
+              <div class="input-group">
+                <input type="text" name="password" id="passEdit" value="<?= htmlspecialchars($edit['password']?? '')?>" class="form-control" required>
+                <div class="input-group-append">
+                  <div class="input-group-text" style="cursor:pointer" onclick="togglePass('passEdit','eyeEdit')">
+                    <i class="fas fa-eye" id="eyeEdit"></i>
+                  </div>
+                </div>
+              </div>
+              <small class="text-muted">Masih plain text untuk pembelajaran</small>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label>Nama Lengkap *</label>
+              <input type="text" name="nama" value="<?= htmlspecialchars($edit['nama']?? '')?>" class="form-control" required>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label>Role *</label>
+              <select name="role" class="form-control">
+                <option value="user" <?= ($edit['role']??'')=='user'?'selected':''?>>User</option>
+                <option value="admin" <?= ($edit['role']??'')=='admin'?'selected':''?>>Admin</option>
+                <option value="operator" <?= ($edit['role']??'')=='operator'?'selected':''?>>Operator</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label>Email (Opsional)</label>
+              <input type="email" name="email" value="<?= htmlspecialchars($edit['email']?? '')?>" class="form-control" placeholder="boleh kosong">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label>Ganti Foto (Kosongkan jika tidak ganti)</label>
+            <div class="custom-file">
+              <input type="file" name="foto" class="custom-file-input" id="fotoEdit" accept="image/*" onchange="previewFoto(this,'previewEdit')">
+              <label class="custom-file-label" for="fotoEdit">Pilih foto baru...</label>
+            </div>
+            <small class="text-muted">Foto lama: <code><?= htmlspecialchars($fotoLama)?></code></small>
+          </div>
+        </div>
+
+        <div class="col-md-4 text-center">
+          <label>Foto Saat Ini</label><br>
+          <img src="<?= $pathLama?>" class="img-thumbnail mb-2" style="width:150px;height:150px;object-fit:cover"><br>
+          <small class="badge badge-info"><?= htmlspecialchars($fotoLama)?></small>
+          <hr>
+          <label>Preview Foto Baru</label><br>
+          <img id="previewEdit" src="#" class="img-thumbnail" style="width:150px;height:150px;object-fit:cover;display:none">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-warning btn-block"><i class="fas fa-save mr-1"></i> Update User</button>
+      <a href="index.php?halaman=user" class="btn btn-secondary btn-block">Kembali</a>
+    </form>
+  </div>
+</div>
+
+<script>
+function togglePass(id, eyeId){
+  const p=document.getElementById(id); const e=document.getElementById(eyeId);
+  if(p.type==='password' || p.type==='text'){ // karena di edit kita pakai text biar kelihatan, toggle tetap jalan
+    if(p.type==='password'){p.type='text'; e.classList.remove('fa-eye'); e.classList.add('fa-eye-slash');}
+    else {p.type='password'; e.classList.add('fa-eye'); e.classList.remove('fa-eye-slash');}
+  }
+}
+function previewFoto(input, previewId){
+  const preview=document.getElementById(previewId);
+  const file=input.files[0];
+  if(file){
+    preview.style.display='block';
+    preview.src=URL.createObjectURL(file);
+    input.nextElementSibling.innerText=file.name;
+  }
+}
+</script>
+
+
+│       └── lihat.php
+<?php
+$id=$_GET['id']??0; $file="data/datauser.json";
+$data=file_exists($file)?(json_decode(file_get_contents($file),true)??[]):[];
+$view=null; foreach($data as $r){ if(($r['id'] ?? 0)==$id){ $view=$r; break; } }
+if(!$view){ echo '<div class="alert alert-danger m-3">User ID '.$id.' tidak ditemukan</div>'; return; }
+$foto = $view['foto'] ?? 'default.png';
+$fotoPath="assets/image/user/".$foto; 
+if(!file_exists($fotoPath)) $fotoPath="assets/image/peserta/".$foto;
+if(!file_exists($fotoPath)) $fotoPath="assets/dist/img/avatar.png";
+?>
+<div class="card card-outline card-primary">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-8">
+        <h3><?= htmlspecialchars($view['nama'] ?? $view['username'] ?? '-') ?></h3>
+        <p class="text-muted">@<?= htmlspecialchars($view['username'] ?? '-') ?> | Role: <?= htmlspecialchars($view['role'] ?? '-') ?></p>
+        <table class="table table-sm">
+          <tr><td width="120">Username</td><td>: <?= htmlspecialchars($view['username'] ?? '-') ?></td></tr>
+          <tr><td>Password</td><td>: <?= htmlspecialchars($view['password'] ?? '-') ?> <small>(plain untuk pembelajaran)</small></td></tr>
+          <tr><td>Nama</td><td>: <?= htmlspecialchars($view['nama'] ?? '-') ?></td></tr>
+          <tr><td>Role</td><td>: <?= htmlspecialchars($view['role'] ?? '-') ?></td></tr>
+          <tr><td>Email</td><td>: <?= htmlspecialchars($view['email'] ?? '-') ?></td></tr>
+          <tr><td>Tanggal Buat</td><td>: <?= htmlspecialchars($view['tanggal_buat'] ?? '-') ?></td></tr>
+          <tr><td>Foto File</td><td>: <code><?= htmlspecialchars($foto) ?></code></td></tr>
+        </table>
+      </div>
+      <div class="col-md-4 text-right">
+        <img src="<?= $fotoPath ?>" class="img-thumbnail" style="width:150px;height:150px;object-fit:cover">
+        <div class="mt-2"><small class="badge badge-info"><?= htmlspecialchars($foto) ?></small></div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer"><a href="index.php?halaman=user" class="btn btn-secondary">Kembali</a> <a href="index.php?halaman=edituser&id=<?= $view['id'] ?? 0 ?>" class="btn btn-warning">Edit</a></div>
+</div>
+
+
+│
+├── proses/
+│   ├── proseslogin.php
+<?php
+// proses/proseslogin.php - Login pakai JSON (Pertemuan 19)
+session_start();
+
+function baca($f){ 
+    return file_exists($f) ? (json_decode(file_get_contents($f), true) ?? []) : []; 
+}
+
+$fileuser = "../data/datauser.json";
+
+// --- LOGOUT ---
+if(isset($_GET['aksi']) && $_GET['aksi']=='logout'){
+    session_unset();
+    session_destroy();
+    header("Location: ../index.php?halaman=home");
+    exit;
+}
+
+// --- PROSES LOGIN ---
+if(isset($_POST['login'])){
+
+    // 1. VALIDASI isset() & empty() - Materi Pertemuan 11 & 13
+    if(!isset($_POST['username']) || !isset($_POST['password'])){
+        header("Location: ../index.php?halaman=loginuser&error=Field belum diset (isset)");
+        exit;
+    }
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    if(empty($username) || empty($password)){
+        header("Location: ../index.php?halaman=loginuser&error=Username dan Password wajib diisi (empty)");
+        exit;
+    }
+
+    // 2. BACA JSON - Materi Function
+    if(!file_exists($fileuser)){
+        // buat default user jika file belum ada
+        $default = [
+            ['id'=>1,'username'=>'user','password'=>'user123','nama'=>'useristrator','role'=>'user']
+        ];
+        file_put_contents($fileuser, json_encode($default, JSON_PRETTY_PRINT));
+    }
+
+    $datauser = baca($fileuser);
+    $loginBerhasil = false;
+    $userData = null;
+
+    // 3. PERULANGAN & PERCABANGAN untuk cek login
+    foreach($datauser as $user){
+        // Cocokkan username & password (plain text untuk pembelajaran Fundamental)
+        if($user['username'] === $username && $user['password'] === $password){
+            $loginBerhasil = true;
+            $userData = $user;
+            break;
+        }
+    }
+
+    // 4. SET SESSION & REDIRECT KE DASHBOARD
+    if($loginBerhasil){
+        $_SESSION['login'] = true;
+        $_SESSION['user_id'] = $userData['id'];
+        $_SESSION['username'] = $userData['username'];
+        $_SESSION['nama'] = $userData['nama'] ?? $userData['username'];
+        $_SESSION['role'] = $userData['role'] ?? 'user';
+
+        // Masuk ke dashboard setelah login - sesuai ketentuan
+        header("Location: ../index.php?halaman=dashboard");
+        exit;
+    } else {
+        header("Location: ../index.php?halaman=loginuser&error=Username atau Password salah! Cek data/datauser.json");
+        exit;
+    }
+
+} else {
+    // jika akses langsung tanpa POST
+    header("Location: ../index.php?halaman=loginuser");
+    exit;
+}
+?>
+
+
+│   ├── prosescvdigital.php
+<?php
+session_start();
+
+function baca($f){ 
+    return file_exists($f) ? (json_decode(file_get_contents($f),true) ?? []) : []; 
+}
+function tulis($f,$d){ 
+    file_put_contents($f, json_encode($d, JSON_PRETTY_PRINT)); 
+}
+function validasi($post){
+  $wajib=['nama_lengkap','tempat_lahir','tanggal_lahir','alamat','email','no_hp','sekolah','jurusan','skills','cita_cita'];
+  foreach($wajib as $field){ 
+    if(!isset($post[$field])) return "Field $field belum diset"; 
+    if(empty(trim($post[$field]))) return "Field $field wajib diisi"; 
+  }
+  return true;
+}
+
+$aksi = $_GET['aksi'] ?? '';
+$file = "../data/datapeserta.json";
+$folderFoto = "../assets/image/peserta/";
+
+// Pastikan folder foto ada
+if(!is_dir($folderFoto)) mkdir($folderFoto, 0777, true);
+
+// --- TAMBAH (Admin) & TAMBAH_PUBLIC (Registrasi Peserta) ---
+if($aksi=='tambah' || $aksi=='tambah_public'){
+  $cek=validasi($_POST); 
+  if($cek!==true) die("<script>alert('$cek'); history.back();</script>");
+
+  $data=baca($file); 
+  $idBaru= empty($data) ? 1 : max(array_column($data,'id'))+1;
+
+  // PROSES FOTO - disimpan sebagai string di JSON
+  $namaFoto = 'default.png';
+  if(isset($_FILES['foto']) && $_FILES['foto']['error']==0){
+    $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+    $allowed = ['jpg','jpeg','png','gif','webp'];
+    if(in_array($ext, $allowed)){
+      $namaFoto = "peserta_".$idBaru."_".time().".".$ext;
+      move_uploaded_file($_FILES['foto']['tmp_name'], $folderFoto.$namaFoto);
+    }
+  }
+
+  $skills=array_map('trim', explode(',', $_POST['skills']));
+  $baru=[
+    'id'=>$idBaru,
+    'nama_lengkap'=>$_POST['nama_lengkap'],
+    'tempat_lahir'=>$_POST['tempat_lahir'],
+    'tanggal_lahir'=>$_POST['tanggal_lahir'],
+    'alamat'=>$_POST['alamat'],
+    'email'=>$_POST['email'],
+    'no_hp'=>$_POST['no_hp'],
+    'sekolah'=>$_POST['sekolah'],
+    'jurusan'=>$_POST['jurusan'],
+    'skills'=>$skills,
+    'cita_cita'=>$_POST['cita_cita'],
+    'foto'=>$namaFoto, // <-- string nama file
+    'tanggal_buat'=>date('Y-m-d H:i:s')
+  ];
+
+  $data[]=$baru; 
+  tulis($file,$data);
+
+  if($aksi=='tambah_public'){ 
+    header("Location: ../index.php?halaman=lihatcv&id=$idBaru"); 
+  } else { 
+    header("Location: ../index.php?halaman=cvdigital"); 
+  } 
+  exit;
+}
+
+// --- EDIT ---
+if($aksi=='edit'){
+  $cek=validasi($_POST); 
+  if($cek!==true) die("<script>alert('$cek'); history.back();</script>");
+
+  $data=baca($file); 
+  $skills=array_map('trim', explode(',', $_POST['skills']));
+
+  foreach($data as &$row){ 
+    if($row['id']==$_POST['id']){ 
+      // Jika ada foto baru diupload
+      if(isset($_FILES['foto']) && $_FILES['foto']['error']==0){
+        $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        if(in_array($ext, $allowed)){
+          // hapus foto lama jika bukan default
+          if(isset($row['foto']) && $row['foto']!='default.png' && file_exists($folderFoto.$row['foto'])){
+            unlink($folderFoto.$row['foto']);
+          }
+          $namaFotoBaru = "peserta_".$row['id']."_".time().".".$ext;
+          move_uploaded_file($_FILES['foto']['tmp_name'], $folderFoto.$namaFotoBaru);
+          $row['foto'] = $namaFotoBaru;
+        }
+      }
+
+      $row['nama_lengkap']=$_POST['nama_lengkap']; 
+      $row['tempat_lahir']=$_POST['tempat_lahir']; 
+      $row['tanggal_lahir']=$_POST['tanggal_lahir']; 
+      $row['alamat']=$_POST['alamat']; 
+      $row['email']=$_POST['email']; 
+      $row['no_hp']=$_POST['no_hp']; 
+      $row['sekolah']=$_POST['sekolah']; 
+      $row['jurusan']=$_POST['jurusan']; 
+      $row['skills']=$skills; 
+      $row['cita_cita']=$_POST['cita_cita']; 
+      break; 
+    } 
+  }
+  tulis($file,$data); 
+  header("Location: ../index.php?halaman=cvdigital"); 
+  exit;
+}
+
+// --- HAPUS ---
+if($aksi=='hapus'){
+  $id=$_GET['id']??0; 
+  $data=baca($file); 
+
+  // hapus file foto fisik
+  foreach($data as $r){
+    if($r['id']==$id && isset($r['foto']) && $r['foto']!='default.png'){
+      if(file_exists($folderFoto.$r['foto'])) unlink($folderFoto.$r['foto']);
+    }
+  }
+
+  $data=array_values(array_filter($data, fn($r)=> $r['id']!=$id)); 
+  tulis($file,$data); 
+  header("Location: ../index.php?halaman=cvdigital"); 
+  exit;
+}
+?>
+
+
+│   └── prosesuser.php
+<?php
+session_start();
+function baca($f){ return file_exists($f) ? (json_decode(file_get_contents($f),true) ?? []) : []; }
+function tulis($f,$d){ file_put_contents($f, json_encode($d, JSON_PRETTY_PRINT)); }
+
+$file = "../data/datauser.json";
+$folderFoto = "../assets/image/user/";
+if(!is_dir($folderFoto)) mkdir($folderFoto, 0777, true);
+$aksi = $_GET['aksi'] ?? '';
+
+if($aksi=='tambah'){
+  if(!isset($_POST['username']) || empty(trim($_POST['username']))) die("<script>alert('Username wajib');history.back();</script>");
+  $data = baca($file);
+  $idBaru = empty($data) ? 1 : max(array_column($data,'id'))+1;
+
+  $namaFoto='default.png';
+  if(isset($_FILES['foto']) && $_FILES['foto']['error']==0){
+    $ext=strtolower(pathinfo($_FILES['foto']['name'],PATHINFO_EXTENSION));
+    if(in_array($ext,['jpg','jpeg','png','webp','gif'])){
+      $namaFoto="user_".$idBaru."_".time().".".$ext;
+      move_uploaded_file($_FILES['foto']['tmp_name'],$folderFoto.$namaFoto);
+    }
+  }
+
+  $baru=[
+    'id'=>$idBaru,
+    'username'=>trim($_POST['username']),
+    'password'=>trim($_POST['password']),
+    'nama'=>trim($_POST['nama']),
+    'role'=>$_POST['role'] ?? 'user',
+    'email'=>trim($_POST['email'] ?? ''), // opsional, biar tidak error
+    'foto'=>$namaFoto,
+    'tanggal_buat'=>date('Y-m-d H:i:s')
+  ];
+  $data[]=$baru; tulis($file,$data);
+  header("Location: ../index.php?halaman=user");
+  exit;
+}
+
+if($aksi=='edit'){
+  $data=baca($file);
+  foreach($data as &$row){
+    if($row['id']==$_POST['id']){
+      if(isset($_FILES['foto']) && $_FILES['foto']['error']==0){
+        $ext=strtolower(pathinfo($_FILES['foto']['name'],PATHINFO_EXTENSION));
+        if(in_array($ext,['jpg','jpeg','png','webp','gif'])){
+          if(($row['foto'] ?? 'default.png')!='default.png' && file_exists($folderFoto.($row['foto'] ?? ''))) unlink($folderFoto.$row['foto']);
+          $namaFoto="user_".$row['id']."_".time().".".$ext;
+          move_uploaded_file($_FILES['foto']['tmp_name'],$folderFoto.$namaFoto);
+          $row['foto']=$namaFoto;
+        }
+      }
+      $row['username']=trim($_POST['username']);
+      $row['password']=trim($_POST['password']);
+      $row['nama']=trim($_POST['nama']);
+      $row['role']=$_POST['role'] ?? $row['role'];
+      $row['email']=trim($_POST['email'] ?? ($row['email'] ?? ''));
+      break;
+    }
+  }
+  tulis($file,$data);
+  header("Location: ../index.php?halaman=user");
+  exit;
+}
+
+if($aksi=='hapus'){
+  $id=$_GET['id']??0;
+  $data=baca($file);
+  foreach($data as $r){ 
+    $f = $r['foto'] ?? 'default.png';
+    if($r['id']==$id && $f!='default.png' && file_exists($folderFoto.$f)) unlink($folderFoto.$f); 
+  }
+  $data=array_values(array_filter($data, fn($r)=>$r['id']!=$id));
+  tulis($file,$data);
+  header("Location: ../index.php?halaman=user");
+  exit;
+}
+?>
+
+
+│
+└── data/
+    ├── datapeserta.json
+    [
+    {
+        "id": 2,
+        "nama_lengkap": "Ahmadi Muslim",
+        "tempat_lahir": "karang baru",
+        "tanggal_lahir": "2002-09-16",
+        "alamat": "jalan paya raja",
+        "email": "ahmadimuslim55@guru.smk.belajar.id",
+        "no_hp": "0827126873123",
+        "sekolah": "SMKN 1 Karang Baru",
+        "jurusan": "Rekayasa Perangkat Lunak",
+        "skills": [
+            "HTML",
+            "PHP",
+            "Python"
+        ],
+        "cita_cita": "Web developer, Cybler Security",
+        "foto": "peserta_2_1789576669.png",
+        "tanggal_buat": "2026-09-16 15:50:59"
+    },
+    {
+        "id": 3,
+        "nama_lengkap": "bang Muslim",
+        "tempat_lahir": "Paya Raja",
+        "tanggal_lahir": "2000-09-02",
+        "alamat": "jalam paya raja city",
+        "email": "ahmadimuslim55@guru.smk.belajar.id",
+        "no_hp": "07128374213123",
+        "sekolah": "SMKN 1 Karang Baru",
+        "jurusan": "Rekayasa Perangkat Lunak",
+        "skills": [
+            "HTML",
+            "PHP",
+            "Python",
+            "React",
+            "Js",
+            "Node"
+        ],
+        "cita_cita": "Web developer, Cybler Security, Devops",
+        "foto": "peserta_3_1789577142.png",
+        "tanggal_buat": "2026-09-16 16:45:42"
+    },
+    {
+        "id": 4,
+        "nama_lengkap": "zulikha",
+        "tempat_lahir": "karang baru",
+        "tanggal_lahir": "2010-09-16",
+        "alamat": "jalan medang ara",
+        "email": "ahmadimuslim55@guru.smk.belajar.id",
+        "no_hp": "0827126873123",
+        "sekolah": "SMKN 1 Karang Baru",
+        "jurusan": "Rekayasa Perangkat Lunak",
+        "skills": [
+            "HTML",
+            "PHP",
+            "Python",
+            "js"
+        ],
+        "cita_cita": "Web developer, Cybler Security, Devops",
+        "foto": "peserta_4_1789607575.png",
+        "tanggal_buat": "2026-09-17 01:12:55"
+    }
+]
+
+
+    └── datauser.json
+    [
+    {
+        "id": 2,
+        "username": "ahmadi",
+        "password": "ahmadi",
+        "nama": "Ahmadi Muslim",
+        "role": "admin",
+        "email": "ahmadimuslim55@guru.smk.belajar.id",
+        "foto": "user_2_1789576638.png",
+        "tanggal_buat": "2026-09-16 16:17:02"
+    },
+    {
+        "id": 3,
+        "username": "admin",
+        "password": "admin",
+        "nama": "administrator",
+        "role": "admin",
+        "email": "ahmadimuslim55@guru.smk.belajar.id",
+        "foto": "user_3_1789576099.jpg",
+        "tanggal_buat": "2026-09-16 16:28:19"
+    }
+]
+
