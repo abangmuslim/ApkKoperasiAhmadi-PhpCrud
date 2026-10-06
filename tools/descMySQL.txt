@@ -1,0 +1,105 @@
+mysql> use koperasiahmadi;
+mysql> show tables;
++--------------------------+
+| Tables_in_koperasiahmadi |
++--------------------------+
+| barang                   |
+| detilpenjualan           |
+| kategori                 |
+| merk                     |
+| pelanggan                |
+| penjualan                |
+| suplier                  |
+| user                     |
++--------------------------+
+
+mysql> desc barang;
++-------------+---------------+------+-----+---------+----------------+
+| Field       | Type          | Null | Key | Default | Extra          |
++-------------+---------------+------+-----+---------+----------------+
+| idbarang    | int           | NO   | PRI | NULL    | auto_increment |
+| idsuplier   | int           | NO   | MUL | NULL    |                |
+| idmerk      | int           | NO   | MUL | NULL    |                |
+| idkategori  | int           | NO   | MUL | NULL    |                |
+| namabarang  | varchar(50)   | NO   |     | NULL    |                |
+| harga       | decimal(15,2) | NO   |     | NULL    |                |
+| tanggalstok | date          | NO   |     | NULL    |                |
+| stok        | int           | NO   |     | NULL    |                |
+| foto        | varchar(50)   | NO   |     | NULL    |                |
++-------------+---------------+------+-----+---------+----------------+
+
+mysql> desc detilpenjualan;
++------------------+---------------+------+-----+---------+----------------+
+| Field            | Type          | Null | Key | Default | Extra          |
++------------------+---------------+------+-----+---------+----------------+
+| iddetilpenjualan | int           | NO   | PRI | NULL    | auto_increment |
+| idpenjualan      | int           | NO   | MUL | NULL    |                |
+| idbarang         | int           | NO   | MUL | NULL    |                |
+| jumlah           | int           | NO   |     | NULL    |                |
+| subtotal         | decimal(15,2) | NO   |     | NULL    |                |
++------------------+---------------+------+-----+---------+----------------+
+
+mysql> desc kategori;
++--------------+-------------+------+-----+---------+----------------+
+| Field        | Type        | Null | Key | Default | Extra          |
++--------------+-------------+------+-----+---------+----------------+
+| idkategori   | int         | NO   | PRI | NULL    | auto_increment |
+| namakategori | varchar(50) | NO   |     | NULL    |                |
++--------------+-------------+------+-----+---------+----------------+
+
+mysql> desc merk;
++----------+-------------+------+-----+---------+----------------+
+| Field    | Type        | Null | Key | Default | Extra          |
++----------+-------------+------+-----+---------+----------------+
+| idmerk   | int         | NO   | PRI | NULL    | auto_increment |
+| namamerk | varchar(50) | NO   |     | NULL    |                |
++----------+-------------+------+-----+---------+----------------+
+
+mysql> desc pelanggan;
++---------------+-------------+------+-----+---------+----------------+
+| Field         | Type        | Null | Key | Default | Extra          |
++---------------+-------------+------+-----+---------+----------------+
+| idpelanggan   | int         | NO   | PRI | NULL    | auto_increment |
+| namapelanggan | varchar(50) | NO   |     | NULL    |                |
+| username      | varchar(20) | YES  |     | NULL    |                |
+| password      | varchar(50) | YES  |     | NULL    |                |
+| nohp          | char(14)    | YES  |     | NULL    |                |
+| alamat        | varchar(50) | YES  |     | NULL    |                |
+| foto          | varchar(50) | YES  |     | NULL    |                |
++---------------+-------------+------+-----+---------+----------------+
+
+mysql> desc penjualan;
++------------------+---------------+------+-----+---------+----------------+
+| Field            | Type          | Null | Key | Default | Extra          |
++------------------+---------------+------+-----+---------+----------------+
+| idpenjualan      | int           | NO   | PRI | NULL    | auto_increment |
+| idpelanggan      | int           | NO   | MUL | NULL    |                |
+| iduser           | int           | NO   | MUL | NULL    |                |
+| tanggalpenjualan | date          | NO   |     | NULL    |                |
+| totalpenjualan   | decimal(15,2) | NO   |     | NULL    |                |
++------------------+---------------+------+-----+---------+----------------+
+
+mysql> desc suplier;
++-------------+-------------+------+-----+---------+----------------+
+| Field       | Type        | Null | Key | Default | Extra          |
++-------------+-------------+------+-----+---------+----------------+
+| idsuplier   | int         | NO   | PRI | NULL    | auto_increment |
+| namasuplier | varchar(50) | NO   |     | NULL    |                |
+| nohp        | char(14)    | NO   |     | NULL    |                |
+| alamat      | varchar(50) | NO   |     | NULL    |                |
++-------------+-------------+------+-----+---------+----------------+
+
+mysql> desc user;
++----------+-------------------------+------+-----+---------+----------------+
+| Field    | Type                    | Null | Key | Default | Extra          |
++----------+-------------------------+------+-----+---------+----------------+
+| iduser   | int                     | NO   | PRI | NULL    | auto_increment |
+| namauser | varchar(50)             | NO   |     | NULL    |                |
+| username | varchar(20)             | YES  |     | NULL    |                |
+| password | varchar(50)             | YES  |     | NULL    |                |
+| nohp     | char(14)                | YES  |     | NULL    |                |
+| alamat   | varchar(50)             | YES  |     | NULL    |                |
+| role     | enum('admin','petugas') | NO   |     | NULL    |                |
+| foto     | varchar(50)             | YES  |     | NULL    |                |
++----------+-------------------------+------+-----+---------+----------------+
+

@@ -1,101 +1,99 @@
-<?php // auth/registrasipeserta.php - Sesuai LKPD Pertemuan 19 + Foto?>
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-md-9">
-      <div class="card card-outline card-primary shadow">
-        <div class="card-header text-center">
-          <h4><b>Form Biodata Peserta</b> - CV Digital</h4>
-          <p class="text-muted small mb-0">Peserta tidak perlu login - langsung isi form (Pertemuan 19)</p>
-        </div>
+
+<div class="d-flex justify-content-center py-4">
+    <div class="card shadow-sm" style="width:100%;max-width:420px;border:1px solid #7e7e7e;border-radius:10px;">
         <div class="card-body p-4">
-          <!-- enctype penting untuk upload foto -->
-          <form method="POST" action="proses/prosescvdigital.php?aksi=tambah_public" enctype="multipart/form-data">
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label>Nama Lengkap *</label>
-                <input type="text" name="nama_lengkap" class="form-control" placeholder="Contoh: Ahmadi Muslim" required>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label>Tempat Lahir *</label>
-                <input type="text" name="tempat_lahir" class="form-control" placeholder="Karang Baru" required>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label>Tanggal Lahir *</label>
-                <input type="date" name="tanggal_lahir" class="form-control" required>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label>Alamat *</label>
-              <textarea name="alamat" class="form-control" placeholder="Jl. Pendidikan No.1" required></textarea>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label>Email *</label>
-                <div class="input-group">
-                  <input type="email" name="email" class="form-control" placeholder="email@smk.sch.id" required>
-                  <div class="input-group-append"><div class="input-group-text"><i class="fas fa-envelope"></i></div></div>
+            <div class="text-center mb-3">
+                <div class="mb-2">
+                    <span class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle" style="width:60px;height:60px;">
+                        <i class="fas fa-user-plus fa-2x"></i>
+                    </span>
                 </div>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label>Nomor HP *</label>
-                <div class="input-group">
-                  <input type="text" name="no_hp" class="form-control" placeholder="0822-xxxx-xxxx" required>
-                  <div class="input-group-append"><div class="input-group-text"><i class="fas fa-phone"></i></div></div>
+                <h4 class="font-weight-bold mb-1">Registrasi Pelanggan</h4>
+                <p class="text-muted mb-0 small">Buat akun pelanggan Koperasi Ahmadi</p>
+            </div>
+            <form action="proses/prosespelanggan.php" method="POST">
+                <div class="form-group mb-3">
+                    <label class="mb-1">
+                        <i class="fas fa-user mr-1 text-success"></i> Nama Lengkap
+                    </label>
+                    <input type="text" name="namapelanggan" class="form-control" placeholder="Masukkan nama lengkap" autocomplete="name" required autofocus>
                 </div>
-              </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label>Sekolah *</label>
-                <input type="text" name="sekolah" class="form-control" value="SMKN 1 Karang Baru" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label>Jurusan *</label>
-                <input type="text" name="jurusan" class="form-control" value="Rekayasa Perangkat Lunak" required>
-              </div>
-            </div>
-
-            <!-- Foto - Fitur Tambahan -->
-            <div class="mb-3">
-              <label>Foto Profil (Opsional)</label>
-              <div class="input-group">
-                <div class="custom-file">
-                  <input type="file" name="foto" class="custom-file-input" id="foto" accept="image/*">
-                  <label class="custom-file-label" for="foto">Pilih file foto...</label>
+                <div class="form-group mb-3">
+                    <label class="mb-1">
+                        <i class="fas fa-at mr-1 text-success"></i> Username
+                    </label>
+                    <input type="text" name="username" class="form-control" placeholder="Buat username" autocomplete="username" required>
                 </div>
-              </div>
-              <small class="text-muted">Foto akan disimpan di assets/image/peserta/ dan namanya disimpan di JSON sebagai string</small>
+                <div class="form-group mb-3">
+                    <label class="mb-1">
+                        <i class="fas fa-lock mr-1 text-success"></i> Password
+                    </label>
+                    <div class="input-group">
+                        <input type="password" name="password" id="passwordRegister" class="form-control" placeholder="Buat password" autocomplete="new-password" required>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary" id="togglePasswordRegister" title="Tampilkan password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="mb-1">
+                        <i class="fas fa-lock mr-1 text-success"></i> Konfirmasi Password
+                    </label>
+                    <div class="input-group">
+                        <input type="password" name="konfirmasi_password" id="konfirmasiPassword" class="form-control" placeholder="Ulangi password" autocomplete="new-password" required>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary" id="toggleKonfirmasiPassword" title="Tampilkan password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" name="register" class="btn btn-success btn-block">
+                    <i class="fas fa-user-plus mr-1"></i> Registrasi
+                </button>
+            </form>
+            <div class="text-center mt-3">
+                <p class="text-muted small mb-1">Sudah memiliki akun?</p>
+                <a href="index.php?halaman=loginpelanggan" class="text-primary small font-weight-bold">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Login Pelanggan
+                </a>
             </div>
-
-            <div class="mb-3">
-              <label>Skill / Keterampilan (pisahkan koma) *</label>
-              <input type="text" name="skills" class="form-control" placeholder="HTML, CSS, PHP, MySQL" required>
-              <small class="text-muted">Materi Array - akan disimpan sebagai ["HTML","CSS","PHP"]</small>
+            <div class="text-center mt-2">
+                <a href="index.php?halaman=home" class="text-muted small">
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Home
+                </a>
             </div>
-
-            <div class="mb-3">
-              <label>Cita-cita Karier *</label>
-              <input type="text" name="cita_cita" class="form-control" placeholder="Junior Web Developer" required>
-            </div>
-
-            <button type="submit" class="btn btn-success btn-block btn-lg"><i class="fas fa-save mr-1"></i> Simpan & Lihat CV Saya</button>
-            <a href="index.php?halaman=home" class="btn btn-secondary btn-block">Kembali ke Home</a>
-          </form>
         </div>
-      </div>
     </div>
-  </div>
 </div>
-
 <script>
-// AdminLTE custom file label
-document.querySelector('.custom-file-input').addEventListener('change', function(e){
-  var fileName = document.getElementById("foto").files[0].name;
-  var nextSibling = e.target.nextElementSibling
-  nextSibling.innerText = fileName
+document.getElementById('togglePasswordRegister').addEventListener('click', function() {
+    const password = document.getElementById('passwordRegister');
+    const icon = this.querySelector('i');
+    if (password.type === 'password') {
+        password.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+        this.title = 'Sembunyikan password';
+    } else {
+        password.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+        this.title = 'Tampilkan password';
+    }
+});
+document.getElementById('toggleKonfirmasiPassword').addEventListener('click', function() {
+    const password = document.getElementById('konfirmasiPassword');
+    const icon = this.querySelector('i');
+    if (password.type === 'password') {
+        password.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+        this.title = 'Sembunyikan password';
+    } else {
+        password.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+        this.title = 'Tampilkan password';
+    }
 });
 </script>
+

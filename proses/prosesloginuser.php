@@ -1,79 +1,167 @@
 <?php
-// proses/proseslogin.php - Login pakai JSON (Pertemuan 19)
-session_start();
 
-function baca($f){ 
-    return file_exists($f) ? (json_decode(file_get_contents($f), true) ?? []) : []; 
-}
+// =====================================================
+// PROSES LOGIN USER
+// Admin & Petugas
+// =====================================================
 
-$fileuser = "../data/datauser.json";
+// Pastikan session aktif
+require_once 'session.php';
 
-// --- LOGOUT ---
-if(isset($_GET['aksi']) && $_GET['aksi']=='logout'){
-    session_unset();
-    session_destroy();
-    header("Location: ../index.php?halaman=home");
-    exit;
-}
+// Koneksi database
+require_once 'koneksi.php';
 
-// --- PROSES LOGIN ---
-if(isset($_POST['login'])){
+// Helper
+require_once 'helper.php';
 
-    // 1. VALIDASI isset() & empty() - Materi Pertemuan 11 & 13
-    if(!isset($_POST['username']) || !isset($_POST['password'])){
-        header("Location: ../index.php?halaman=loginuser&error=Field belum diset (isset)");
-        exit;
-    }
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
 
-    if(empty($username) || empty($password)){
-        header("Location: ../index.php?halaman=loginuser&error=Username dan Password wajib diisi (empty)");
-        exit;
-    }
+// =====================================================
+// CEK REQUEST
+// =====================================================
 
-    // 2. BACA JSON - Materi Function
-    if(!file_exists($fileuser)){
-        // buat default user jika file belum ada
-        $default = [
-            ['id'=>1,'username'=>'user','password'=>'user123','nama'=>'useristrator','role'=>'user']
-        ];
-        file_put_contents($fileuser, json_encode($default, JSON_PRETTY_PRINT));
-    }
-
-    $datauser = baca($fileuser);
-    $loginBerhasil = false;
-    $userData = null;
-
-    // 3. PERULANGAN & PERCABANGAN untuk cek login
-    foreach($datauser as $user){
-        // Cocokkan username & password (plain text untuk pembelajaran Fundamental)
-        if($user['username'] === $username && $user['password'] === $password){
-            $loginBerhasil = true;
-            $userData = $user;
-            break;
-        }
-    }
-
-    // 4. SET SESSION & REDIRECT KE DASHBOARD
-    if($loginBerhasil){
-        $_SESSION['login'] = true;
-        $_SESSION['user_id'] = $userData['id'];
-        $_SESSION['username'] = $userData['username'];
-        $_SESSION['nama'] = $userData['nama'] ?? $userData['username'];
-        $_SESSION['role'] = $userData['role'] ?? 'user';
-
-        // Masuk ke dashboard setelah login - sesuai ketentuan
-        header("Location: ../index.php?halaman=dashboard");
-        exit;
-    } else {
-        header("Location: ../index.php?halaman=loginuser&error=Username atau Password salah! Cek data/datauser.json");
-        exit;
-    }
-
-} else {
-    // jika akses langsung tanpa POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: ../index.php?halaman=loginuser");
     exit;
 }
-?>
+
+
+// =====================================================
+// AMBIL DATA FORM
+// =====================================================
+
+$username = trim($_POST['username'] ?? '');
+$password = $_POST['password'] ?? '';
+
+
+// =====================================================
+// VALIDASI FORM
+// =====================================================
+
+if ($username === '' || $password === '') {
+
+    $_SESSION['error_login'] = 'Username dan password wajib diisi.';
+
+    header("Location: ../index.php?halaman=loginuser");
+    exit;
+}
+
+
+// =====================================================
+// CARI USER
+// =====================================================
+
+$query = "SELECT *
+          FROM user
+          WHERE username = ?
+          LIMIT 1";
+
+$stmt = mysqli_prepare($koneksi, $query);
+
+if (!$stmt) {
+
+    $_SESSION['error_login'] = 'Terjadi kesalahan pada sistem.';
+
+    header("Location: ../index.php?halaman=loginuser");
+    exit;
+}
+
+mysqli_stmt_bind_param($stmt, "s", $username);
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
+$data   = mysqli_fetch_assoc($result);
+
+
+// =====================================================
+// CEK USER
+// =====================================================
+
+if (!$data) {
+
+    $_SESSION['error_login'] = 'Username atau password salah.';
+
+    mysqli_stmt_close($stmt);
+
+    header("Location: ../index.php?halaman=loginuser");
+    exit;
+}
+
+
+// =====================================================
+// VERIFIKASI PASSWORD
+// =====================================================
+
+if (!password_verify($password, $data['password'])) {
+
+    $_SESSION['error_login'] = 'Username atau password salah.';
+
+    mysqli_stmt_close($stmt);
+
+    header("Location: ../index.php?halaman=loginuser");
+    exit;
+}
+
+
+// =====================================================
+// CEK ROLE
+// =====================================================
+
+$role = strtolower(trim($data['role']));
+
+if ($role !== 'admin' && $role !== 'petugas') {
+
+    $_SESSION['error_login'] = 'Akun tidak memiliki akses sebagai user.';
+
+    mysqli_stmt_close($stmt);
+
+    header("Location: ../index.php?halaman=loginuser");
+    exit;
+}
+
+
+// =====================================================
+// LOGIN BERHASIL
+// =====================================================
+
+// Regenerasi session ID untuk mencegah session fixation
+session_regenerate_id(true);
+
+
+// Session user
+$_SESSION['iduser']   = $data['iduser'];
+$_SESSION['namauser'] = $data['namauser'];
+$_SESSION['role']     = $role;
+
+
+// Penanda login user
+$_SESSION['login'] = true;
+
+
+// Bersihkan pesan error login jika ada
+unset($_SESSION['error_login']);
+
+
+// Tutup statement
+mysqli_stmt_close($stmt);
+
+
+// =====================================================
+// REDIRECT BERDASARKAN ROLE
+// =====================================================
+
+if ($role === 'admin') {
+
+    header("Location: ../index.php?halaman=dashboardadmin");
+    exit;
+}
+
+if ($role === 'petugas') {
+
+    header("Location: ../index.php?halaman=dashboardpetugas");
+    exit;
+}
+
+
+// Fallback
+header("Location: ../index.php?halaman=loginuser");
+exit;

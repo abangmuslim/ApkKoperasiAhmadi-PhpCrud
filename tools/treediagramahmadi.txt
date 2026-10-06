@@ -1,6 +1,6 @@
 apkkoperasiahmadi/
 │
-├── index.php                 # halaman homepage selamat datang (pakai navbar yang ada menu loginuser dan loginpelanggan)
+├── index.php                 
 │
 ├── assets/
 │   ├── js/
@@ -18,15 +18,17 @@ apkkoperasiahmadi/
 │   │   ├── tamu/
 │   │   │   ├── navbar.php    =>  pakai navbar yang ada menu loginuser dan loginpelanggan
 │   │   │   └── footer.php
+│   │   ├── pelanggan/
+│   │   │   ├── navbar.php     =>  pakai navbar yang ada foto, role, namapelanggan, menu logoutnya
+│   │   │   ├── sidebar.php
+│   │   │   └── footer.php
 │   │   ├── user/
 │   │   │   ├── navbar.php    =>  pakai navbar yang ada foto, role, namauser, menu logoutnya
 │   │   │   ├── sidebaradmin.php    => sesuai usecase seluruh fitur bisa diakses
 │   │   │   ├── sidebarpetugas.php     => tidak boleh ada menu user, bahkan tidak boleh diakses langsung dengan mengetik di url
 │   │   │   └── footer.php
-│   │   └── pelanggan/
-│   │       ├── navbar.php     =>  pakai navbar yang ada foto, role, namapelanggan, menu logoutnya
-│   │       ├── sidebar.php
-│   │       └── footer.php
+│   │   ├── header.php
+│   │   └── footerjs.php
 │   │
 │   ├── user/   ← (ADMIN & PETUGAS)
 │   │   ├── dashboard/
@@ -104,6 +106,7 @@ apkkoperasiahmadi/
 └── proses/
    ├── koneksi.php
    ├── session.php
+   ├── helper.php
    ├── proseslogout.php
    ├── prosesloginuser.php
    ├── prosesloginpelanggan.php

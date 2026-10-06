@@ -1,86 +1,59 @@
-<?php // auth/loginuser.php - Versi dengan Label & Show/Hide Password ?>
-<div class="d-flex justify-content-center align-items-center" style="min-height:80vh;">
-  <div class="login-box" style="width:400px;">
-    <div class="card card-outline card-primary shadow">
-      <div class="card-header text-center">
-        <a href="index.php?halaman=home" class="h1"><b>CV</b> Digital</a>
-      </div>
-      <div class="card-body">
-        <p class="login-box-msg">Silakan masuk untuk memulai sesi</p>
-
-        <?php if(isset($_GET['error'])): ?>
-          <div class="alert alert-danger py-2 small"><?= htmlspecialchars($_GET['error']) ?></div>
-        <?php endif; ?>
-
-        <form action="proses/proseslogin.php" method="post">
-          
-          <!-- Username dengan Label -->
-          <div class="form-group">
-            <label for="username">Username:</label>
-            <div class="input-group">
-              <input type="text" id="username" name="username" class="form-control" placeholder="Masukkan username Anda" required value="admin">
-              <div class="input-group-append">
-                <div class="input-group-text"><span class="fas fa-user"></span></div>
-              </div>
-            </div>
-            <small class="text-muted">Contoh: admin, guru</small>
-          </div>
-
-          <!-- Password dengan Label + Mata -->
-          <div class="form-group">
-            <label for="password">Password:</label>
-            <div class="input-group">
-              <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan password Anda" required value="admin123">
-              <div class="input-group-append">
-                <!-- Tombol Mata -->
-                <div class="input-group-text" style="cursor:pointer;" onclick="togglePassword()">
-                  <span class="fas fa-eye" id="eyeIcon"></span>
+<div class="d-flex justify-content-center py-4">
+    <div class="card shadow-sm" style="width:100%;max-width:420px;border:1px solid #7e7e7e;border-radius:10px;">
+        <div class="card-body p-4">
+            <div class="text-center mb-3">
+                <div class="mb-2">
+                    <span class="d-inline-flex align-items-center justify-content-center bg-danger text-white rounded-circle" style="width:60px;height:60px;">
+                        <i class="fas fa-user-shield fa-2x"></i>
+                    </span>
                 </div>
-                <div class="input-group-text">
-                  <span class="fas fa-lock"></span>
+                <h4 class="font-weight-bold mb-1">Login User</h4>
+                <p class="text-muted mb-0 small">Masuk ke sistem Koperasi Ahmadi</p>
+            </div>
+            <form action="proses/prosesloginuser.php" method="POST">
+                <div class="form-group mb-3">
+                    <label class="mb-1">
+                        <i class="fas fa-user mr-1 text-danger"></i> Username
+                    </label>
+                    <input type="text" name="username" class="form-control" placeholder="Masukkan username" autocomplete="username" required autofocus>
                 </div>
-              </div>
+                <div class="form-group mb-3">
+                    <label class="mb-1">
+                        <i class="fas fa-lock mr-1 text-danger"></i> Password
+                    </label>
+                    <div class="input-group">
+                        <input type="password" name="password" id="passwordUser" class="form-control" placeholder="Masukkan password" autocomplete="current-password" required>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary" id="togglePasswordUser" title="Tampilkan password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" name="login" class="btn btn-danger btn-block">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Login User
+                </button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="index.php?halaman=home" class="text-muted small">
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Home
+                </a>
             </div>
-            <small class="text-muted">Gunakan password yang terdaftar di JSON</small>
-          </div>
-
-          <div class="row mt-4">
-            <div class="col-8">
-              <div class="icheck-primary">
-                <input type="checkbox" id="remember">
-                <label for="remember">Remember Me</label>
-              </div>
-            </div>
-            <div class="col-4">
-              <button type="submit" name="login" class="btn btn-primary btn-block">Sign In</button>
-            </div>
-          </div>
-        </form>
-
-        <p class="mb-0 mt-3 text-center">
-          <a href="index.php?halaman=registerpeserta">Registrasi sebagai Peserta</a>
-        </p>
-        <div class="alert alert-info mt-3 py-2 small">
-          <b>Login Default:</b><br>
-          Username: <code>admin</code> / Password: <code>admin123</code>
         </div>
-      </div>
     </div>
-  </div>
 </div>
-
 <script>
-function togglePassword() {
-  const pass = document.getElementById('password');
-  const eye = document.getElementById('eyeIcon');
-  if (pass.type === 'password') {
-    pass.type = 'text';
-    eye.classList.remove('fa-eye');
-    eye.classList.add('fa-eye-slash');
-  } else {
-    pass.type = 'password';
-    eye.classList.remove('fa-eye-slash');
-    eye.classList.add('fa-eye');
-  }
-}
+    document.getElementById('togglePasswordUser').addEventListener('click', function() {
+        const password = document.getElementById('passwordUser');
+        const icon = this.querySelector('i');
+        if (password.type === 'password') {
+            password.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+            this.title = 'Sembunyikan password';
+        } else {
+            password.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+            this.title = 'Tampilkan password';
+        }
+    });
 </script>
