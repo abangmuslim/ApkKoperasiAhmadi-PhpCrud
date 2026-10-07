@@ -10,7 +10,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-
 /*
 |--------------------------------------------------------------------------
 | SESSION TIMEOUT
@@ -22,7 +21,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $timeout = 60 * 60;
 
-
 /*
 |--------------------------------------------------------------------------
 | CEK AKTIVITAS SESSION
@@ -30,23 +28,16 @@ $timeout = 60 * 60;
 */
 
 if (isset($_SESSION['last_activity'])) {
-
-    $selisihWaktu =
-        time() - $_SESSION['last_activity'];
+    $selisihWaktu = time() - $_SESSION['last_activity'];
 
     if ($selisihWaktu > $timeout) {
-
         session_unset();
         session_destroy();
 
-        header(
-            "Location: index.php?halaman=loginuser&pesan=timeout"
-        );
-
+        header("Location: index.php?halaman=loginuser&pesan=timeout");
         exit;
     }
 }
-
 
 /*
 |--------------------------------------------------------------------------

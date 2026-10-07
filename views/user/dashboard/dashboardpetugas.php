@@ -1,12 +1,9 @@
 <?php
-
 $totalBarang     = totalData($koneksi, 'barang');
 $totalPelanggan  = totalData($koneksi, 'pelanggan');
 $totalKategori   = totalData($koneksi, 'kategori');
 $totalPenjualan  = totalData($koneksi, 'penjualan');
-
 ?>
-
 <section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -21,11 +18,8 @@ $totalPenjualan  = totalData($koneksi, 'penjualan');
         </div>
     </div>
 </section>
-
 <section class="content">
-
     <div class="container-fluid">
-
         <div class="card bg-gradient-success">
             <div class="card-body">
                 <h3>
@@ -37,9 +31,7 @@ $totalPenjualan  = totalData($koneksi, 'penjualan');
                 </p>
             </div>
         </div>
-
         <div class="row">
-
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-primary">
                     <div class="inner">
@@ -54,7 +46,6 @@ $totalPenjualan  = totalData($koneksi, 'penjualan');
                     </a>
                 </div>
             </div>
-
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner">
@@ -69,7 +60,6 @@ $totalPenjualan  = totalData($koneksi, 'penjualan');
                     </a>
                 </div>
             </div>
-
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-warning">
                     <div class="inner">
@@ -84,7 +74,6 @@ $totalPenjualan  = totalData($koneksi, 'penjualan');
                     </a>
                 </div>
             </div>
-
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-danger">
                     <div class="inner">
@@ -99,103 +88,74 @@ $totalPenjualan  = totalData($koneksi, 'penjualan');
                     </a>
                 </div>
             </div>
-
         </div>
-
         <div class="row">
-
             <div class="col-md-8">
-
                 <div class="card card-success">
-
                     <div class="card-header">
                         <h3 class="card-title">
                             Aktivitas Petugas
                         </h3>
                     </div>
-
                     <div class="card-body">
-
                         <div class="row text-center">
-
                             <div class="col-md-3 col-6 mb-3">
                                 <a href="index.php?halaman=barang" class="btn btn-app">
                                     <i class="fas fa-box"></i>
                                     Barang
                                 </a>
                             </div>
-
                             <div class="col-md-3 col-6 mb-3">
                                 <a href="index.php?halaman=pelanggan" class="btn btn-app">
                                     <i class="fas fa-user-friends"></i>
                                     Pelanggan
                                 </a>
                             </div>
-
                             <div class="col-md-3 col-6 mb-3">
                                 <a href="index.php?halaman=suplier" class="btn btn-app">
                                     <i class="fas fa-truck"></i>
                                     Suplier
                                 </a>
                             </div>
-
                             <div class="col-md-3 col-6 mb-3">
                                 <a href="index.php?halaman=penjualan" class="btn btn-app">
                                     <i class="fas fa-cash-register"></i>
                                     Penjualan
                                 </a>
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
             <div class="col-md-4">
-
                 <div class="card card-outline card-success">
-
                     <div class="card-header">
                         <h3 class="card-title">
                             Informasi Akun
                         </h3>
                     </div>
-
                     <div class="card-body text-center">
-
                         <img
-                            src="assets/images/user/<?=
+                            src="assets/images/user/<?= 
                             $_SESSION['foto'] ?? 'default.png';
                             ?>"
                             class="img-circle elevation-2 mb-3"
                             width="100">
-
                         <h5>
                             <?= $_SESSION['namauser']; ?>
                         </h5>
-
                         <span class="badge badge-success">
                             <?= strtoupper($_SESSION['role']); ?>
                         </span>
-
                         <hr>
-
                         <a href="index.php?halaman=logout"
                            class="btn btn-danger btn-block">
                             Logout
                         </a>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </section>
+
